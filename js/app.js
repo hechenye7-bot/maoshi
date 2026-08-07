@@ -3,7 +3,7 @@
    ============================================================ */
 'use strict';
 
-const VERSION = '1.15.0';
+const VERSION = '1.15.3';
 
 /* ---------- Toast ---------- */
 const Toast = {
@@ -54,7 +54,10 @@ const UI = {
     subEl.textContent = poem ? `${poem.title} · ${poem.year}` : '';
 
     /* 提前缓冲开场诗音频：进场即播，不在播放页才现拉解码 → 消除进场卡顿 */
-    if (poem) PlayerAudio.load(poem);
+    if (poem) {
+      PlayerAudio.load(poem);
+      setPeriodBackground(poem.period);   // 开场渐显前就把背景切到对应时期图
+    }
 
     /* 磬声与"字炸开爆点"同步（字爆点≈0.6s），不再固定 1500ms */
     setTimeout(() => { Ritual.qing(0.9); }, 600);
@@ -348,20 +351,20 @@ const SettingsUI = {
     /* 还原默认 */
     document.getElementById('btn-reset').addEventListener('click', () => {
       AppState.settings = {
-        font: 'mao', font_size: 'm', bright: 0.95, atmosphere: 'm',
-        bgm_id: null, bgm_on: true, bgm_volume: 0.5,
-        subtitle: true, ritual_sound: true, click_sound: true
+        font: 'stele', font_size: 'l', bright: 0.4, atmosphere: 'off',
+        bgm_id: null, bgm_on: true, bgm_volume: 0.3,
+        subtitle: false, ritual_sound: true, click_sound: true
       };
       AppState.saveSettings();
-      document.getElementById('set-subtitle').checked = true;
+      document.getElementById('set-subtitle').checked = false;
       document.getElementById('set-ritual').checked = true;
       document.getElementById('set-click').checked = true;
       document.getElementById('set-bgmon').checked = true;
-      document.getElementById('set-bright').value = 0.95;
-      document.getElementById('set-bright-val').textContent = '95%';
-      this.applyBright(0.95);
-      document.getElementById('set-bgmvol').value = 50;
-      document.getElementById('set-bgmvol-val').textContent = '50%';
+      document.getElementById('set-bright').value = 0.4;
+      document.getElementById('set-bright-val').textContent = '40%';
+      this.applyBright(0.4);
+      document.getElementById('set-bgmvol').value = 30;
+      document.getElementById('set-bgmvol-val').textContent = '30%';
       PlayerAudio.refreshBgmVolume();
       this.syncFontSeg();
       this.syncAtmoSeg();
@@ -524,7 +527,7 @@ function spawnInkBurst(x, y, n = 10) {
     const s = document.createElement('div');
     s.className = 'ink-burst';
     const ang = (Math.PI * 2 * i) / n + Math.random() * 0.4;
-    const dist = 28 + Math.random() * 46;
+    const dist = 40 + Math.random() * 60;
     s.style.left = x + 'px';
     s.style.top = y + 'px';
     s.style.setProperty('--dx', (Math.cos(ang) * dist).toFixed(1) + 'px');

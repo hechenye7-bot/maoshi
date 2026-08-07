@@ -6,6 +6,46 @@
 /* 手机端判定（≤640px；PC 端走原布局参数，互不影响） */
 const isMobile = () => window.innerWidth < 640;
 
+/* 时期 → 背景图映射（与图片素材顺序一致） */
+const PERIOD_BG = {
+  '早年立志':      'period_1.jpg',
+  '井冈山与根据地': 'period_2.jpg',
+  '长征路上':      'period_3.jpg',
+  '开国前后':      'period_4.jpg',
+  '建设年代':      'period_5.jpg'
+};
+
+/* 双层背景图交叉淡入淡出（2s）。同一时期不重复切换。 */
+function setPeriodBackground(period) {
+  const file = PERIOD_BG[period];
+  if (!file) return;
+  const url = `assets/img/${file}`;
+  const next = document.querySelector('.bg-image-next');
+  const current = document.querySelector('.bg-image-current');
+  if (!next || !current) return;
+  const currentUrl = (getComputedStyle(current).backgroundImage || '');
+  if (currentUrl.includes(file)) return;     // 同一时期不切换
+
+  const img = new Image();
+  img.onload = () => {
+    next.style.backgroundImage = `url('${url}')`;
+    requestAnimationFrame(() => {
+      next.style.opacity = '1';
+      current.style.opacity = '0';
+    });
+    setTimeout(() => {
+      next.classList.remove('bg-image-next');
+      next.classList.add('bg-image-current');
+      current.classList.remove('bg-image-current');
+      current.classList.add('bg-image-next');
+      current.style.opacity = '0';
+      current.style.backgroundImage = '';
+    }, 2000);
+  };
+  img.onerror = () => console.warn('背景图加载失败', url);
+  img.src = url;
+}
+
 const Player = {
   poem: null,
   bodyEl: document.getElementById('player-body'),
@@ -68,9 +108,9 @@ const Player = {
     this.titleEl.textContent = poem.title;
     this.bylineEl.textContent = '—— ' + poem.year;
     this.subEl.textContent = '';
+    document.body.dataset.period = poem.period || '';
+    setPeriodBackground(poem.period);
     UI.refreshSeal();
-    /* ④ 时期色调跟随当前诗（body[data-period] 驱动电影分级背景色） */
-    document.body.setAttribute('data-period', poem.period || '');
   },
 
   /* 字号：整首统一字号，约束在适中区间（默认 42–52px），零溢出 */
@@ -254,13 +294,14 @@ const Player = {
     const rect = this.bodyEl.getBoundingClientRect();
     const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
     /* 中心绽开极淡暗金粒子（不四散，收拢即灭）点睛 */
-    spawnInkBurst(cx, cy, 10);
+    spawnInkBurst(cx, cy, 14);
     const oldEl = this.wrapEl;
     if (oldEl) {
-      /* 旧诗"收卷"：轻微收拢 + 淡出 */
-      oldEl.style.transition = 'opacity 0.42s ease, transform 0.42s ease';
-      oldEl.style.transform = 'scale(0.97)';
+      /* 旧诗"收卷"：明显收拢 + 微虚化 + 淡出，像一卷轴收起 */
+      oldEl.style.transition = 'opacity 0.42s ease, transform 0.42s ease, filter 0.42s ease';
+      oldEl.style.transform = 'scale(0.90)';
       oldEl.style.opacity = '0';
+      oldEl.style.filter = 'blur(2px)';
     }
     setTimeout(() => {
       this.render(poem);
@@ -302,6 +343,10 @@ PlayerAudio.endedHook = () => {
   UI.refreshPlayBtn();
   /* 诗播完：BGM 从容缓出到无声后暂停（v1.13.1 2s，不突兀） */
   PlayerAudio.fadeTo(0, 2.0, () => { try { PlayerAudio.bgmEl.pause(); } catch (e) {} });
+  /* 自动轮播：停 2 秒后切下一首并自动播放 */
+  setTimeout(() => {
+    if (UI && UI.nextPoem) UI.nextPoem();
+  }, 2000);
 };
 
 /* 窗口缩放：防抖重算字号与布局（不重渲染，避免窄屏长诗溢出/顶满）。

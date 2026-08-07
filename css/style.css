@@ -19,7 +19,7 @@
 @property --sun-a { syntax: '<color>'; inherits: true; initial-value: rgba(244,196,120,0.22); }
 @property --sun-b { syntax: '<color>'; inherits: true; initial-value: rgba(190,80,40,0.14); }
 @property --tint  { syntax: '<color>'; inherits: true; initial-value: rgba(0,0,0,0); }
-@property --ray   { syntax: '<color>'; inherits: true; initial-value: rgba(255,235,200,0.06); }
+@property --ray   { syntax: '<color>'; inherits: true; initial-value: rgba(255,235,200,0.10); }
 
 /* ---------- 变量 ---------- */
 :root {
@@ -79,14 +79,19 @@ body::after { bottom: 28px; }
 }
 .bg-stage > div { position: absolute; }
 
-/* 1. 血色江山（用户素材图 · 全屏铺满） */
+/* 1. 时期背景图：双层结构，切换时 2s 交叉淡入淡出 */
 .bg-image {
   inset: 0;
-  background: url('../assets/img/jsh.jpg') center center / cover no-repeat;
+  background: center center / cover no-repeat;
   transform-origin: 52% 46%;
   /* 更慢更远的航拍推近 + 极轻水平往复（220s 一周期，像镜头缓缓逼近） */
   animation: bg-kenburns 220s ease-in-out infinite alternate;
+  transition: opacity 2s ease;
 }
+.bg-image-current { opacity: 1; z-index: 1; }
+.bg-image-next    { opacity: 0; z-index: 0; }
+/* 默认首屏：period_1.jpg（早年立志，对应 poems.json 第一首） */
+.bg-image-current { background-image: url('../assets/img/period_1.jpg'); }
 @keyframes bg-kenburns {
   from { transform: scale(1.02) translateX(-2.2%); }
   to   { transform: scale(1.18) translateX(2.2%); }
@@ -187,7 +192,7 @@ body::after { bottom: 28px; }
   inset: 0; pointer-events: none; overflow: hidden;
   background:
     radial-gradient(ellipse 120% 70% at 50% 118%, rgba(20,10,8,0.5), transparent 70%),
-    radial-gradient(ellipse 92% 52% at 30% -8%, rgba(150,90,50,0.10), transparent 72%);
+    radial-gradient(ellipse 92% 52% at 30% -8%, rgba(150,90,50,0.16), transparent 72%);
   transform: scale(1.15);
   filter: blur(12px);
   animation: cloudback-drift 240s ease-in-out infinite alternate;
@@ -199,7 +204,7 @@ body::after { bottom: 28px; }
 /* ② 山脚淡雾：底部极淡流动水汽，左右极缓漂移、低透明度、模糊 */
 .bg-fog {
   inset: 0; pointer-events: none; overflow: hidden;
-  background: radial-gradient(ellipse 84% 30% at 50% 102%, rgba(214,198,170,0.12), transparent 72%);
+  background: radial-gradient(ellipse 84% 30% at 50% 102%, rgba(214,198,170,0.18), transparent 72%);
   filter: blur(22px);
   animation: fog-drift 90s ease-in-out infinite alternate;
 }
@@ -210,7 +215,7 @@ body::after { bottom: 28px; }
 /* ④ 体积光（神光）：极淡光柱左右极缓摆动，颜色由 --ray 驱动，2s 过渡 */
 .bg-godray {
   inset: 0; pointer-events: none; overflow: hidden;
-  background: linear-gradient(102deg, transparent 44%, var(--ray, rgba(255,235,200,0.06)) 50%, transparent 56%);
+  background: linear-gradient(102deg, transparent 44%, var(--ray, rgba(255,235,200,0.14)) 50%, transparent 56%);
   filter: blur(30px);
   opacity: 0.9;
   animation: godray-sway 70s ease-in-out infinite alternate;
@@ -272,26 +277,26 @@ body::after { bottom: 28px; }
   pointer-events: none;
 }
 @keyframes intro-inkball {
-  0%   { opacity: 1; transform: scale(1.5); filter: blur(2px); }
-  34%  { opacity: 1; transform: scale(1.72); filter: blur(0); }   /* 墨团聚合膨胀 */
-  60%  { opacity: 0.92; transform: scale(2.15); filter: blur(15px); } /* 炸开 */
-  100% { opacity: 0; transform: scale(2.6); filter: blur(26px); }
+  0%   { opacity: 1; transform: scale(1.6); filter: blur(2px); }
+  34%  { opacity: 1; transform: scale(1.95); filter: blur(0); }   /* 墨团聚合膨胀 */
+  60%  { opacity: 0.95; transform: scale(2.5); filter: blur(18px); } /* 炸开 */
+  100% { opacity: 0; transform: scale(3.1); filter: blur(30px); }
 }
 /* 金边描边：字成形后一道暗金描边闪过（"金丝裂纹沿字迹游走"的收束感） */
 @keyframes intro-gold {
   0%, 42% { text-shadow: 0 0 18px rgba(200,16,46,0.5), 0 2px 6px rgba(0,0,0,0.85); }
-  56%     { text-shadow: 0 0 28px rgba(244,196,120,0.95), 0 0 11px rgba(255,240,200,0.85), 0 2px 6px rgba(0,0,0,0.85); }
+  56%     { text-shadow: 0 0 34px rgba(244,196,120,1), 0 0 16px rgba(255,240,200,0.95), 0 0 44px rgba(255,200,120,0.4), 0 2px 6px rgba(0,0,0,0.85); }
   100%    { text-shadow: 0 0 18px rgba(200,16,46,0.5), 0 2px 6px rgba(0,0,0,0.85); }
 }
 @keyframes intro-split {
-  0%   { opacity: 0; transform: scale(1.95) translateY(8px); filter: blur(13px); }
+  0%   { opacity: 0; transform: scale(2.25) translateY(10px); filter: blur(16px); }
   42%  { opacity: 1; transform: scale(0.93) translateY(0); filter: blur(1.2px); }
   100% { opacity: 1; transform: scale(1); filter: blur(0); }
 }
 /* 墨晕爆裂：劈字瞬间一圈墨色由内向外炸开再收（"推开历史大门"的冲击） */
 @keyframes intro-ink {
   0%   { box-shadow: 0 0 0 0 rgba(18,9,5,0); }
-  22%  { box-shadow: 0 0 70px 26px rgba(18,9,5,0.55), 0 0 120px 60px rgba(200,16,46,0.18); }
+  22%  { box-shadow: 0 0 90px 34px rgba(18,9,5,0.65), 0 0 160px 80px rgba(200,16,46,0.26); }
   70%  { box-shadow: 0 0 90px 40px rgba(18,9,5,0); }
   100% { box-shadow: 0 0 0 0 rgba(18,9,5,0); }
 }
@@ -508,6 +513,9 @@ body[data-atmo="off"] .player-body::after { display: none; }
   letter-spacing: 0.08em;               /* 字距再收紧：笔画更挺、更锋锐（v1.12） */
   color: #f4ead0;                       /* 极浅暖奶油：接近截图米白柔光 */
   font-weight: 600;
+  /* 浮现动效：从下方轻微升起 + 淡入（translate 独立于 transform 的 scale，互不冲突） */
+  translate: 0 14px;
+  transition: translate 0.9s ease-out;
   /* 光影层次（v1.12）：紧致亮边让字形边缘更实更锐 + 柔和暖辉，笔锋有"写出来"的立体感 */
   text-shadow:
     0 0 1px rgba(255,245,220,0.95),
@@ -516,6 +524,9 @@ body[data-atmo="off"] .player-body::after { display: none; }
     0 1px 1px rgba(40,22,6,0.5);
   filter: none;                         /* 默认无滤镜，字形绝对锐利 */
 }
+/* 已浮现/当前句：字归位（上升到位），叠在浮沉之上 */
+.line-block.revealed .line-text,
+.line-block.current .line-text { translate: 0 0; }
 /* 落墨晕开：揭示时由淡到浓（opacity），氛围浓度控制时长；与 feibai 互不冲突 */
 .revealed .line-text, .current .line-text {
   animation: ink-bloom var(--bloom-dur, 0.95s) ease-out both;
@@ -554,6 +565,12 @@ body.font-stele .line-text {
     0 0 7px rgba(255,234,184,0.70),
     0 0 8px rgba(255,222,170,0.40),
     0 0 2px rgba(140,15,30,0.35);
+  /* 呼吸金光：当前句轻微缩放脉动，像在"诵出"（scale 独立属性，不与浮动/瘦体冲突） */
+  animation: current-glow 2.4s ease-in-out infinite;
+}
+@keyframes current-glow {
+  0%, 100% { scale: 1; }
+  50% { scale: 1.04; }
 }
 .scroll-wrap.paused .line-block { opacity: var(--line-op, 0.72); }
 .scroll-wrap.paused .line-block.current { opacity: 1; }
@@ -1156,8 +1173,8 @@ body.font-stele .line-text {
 
 /* 切诗点睛：中心暗金粒子"绽开即收拢"（不四散，收束淡出） */
 .ink-burst {
-  position: fixed; width: 5px; height: 5px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,228,170,0.9), rgba(200,150,40,0.5) 60%, transparent 100%);
+  position: fixed; width: 7px; height: 7px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,228,170,1), rgba(200,150,40,0.6) 60%, transparent 100%);
   pointer-events: none; z-index: 60;
   animation: ink-burst 0.9s ease-out forwards;
 }
@@ -1299,8 +1316,12 @@ body[data-atmo="low"] .bg-birds { display: none; }
 /* ② 新层氛围联动：关→纯净（隐藏雾/底衬/神光，色调回退中性）；弱→降透明度 */
 body[data-atmo="off"] .bg-fog,
 body[data-atmo="off"] .bg-cloudback,
-body[data-atmo="off"] .bg-godray { display: none; }
+body[data-atmo="off"] .bg-godray,
+body[data-atmo="off"] .bg-clouds,
+body[data-atmo="off"] .bg-dust,
+body[data-atmo="off"] .bg-mist { display: none; }
 body[data-atmo="off"] .bg-tint { background-color: rgba(0,0,0,0); }
+body[data-atmo="off"] .bg-amber { opacity: 0.35; }
 body[data-atmo="low"] .bg-fog { opacity: 0.5; }
 body[data-atmo="low"] .bg-cloudback { opacity: 0.6; }
 body[data-atmo="low"] .bg-godray { opacity: 0.5; }
@@ -1319,11 +1340,12 @@ body[data-atmo="low"] .bg-godray { opacity: 0.5; }
 /* ============================================================
    ④ 电影分级色调：按时期浸染（2s 平滑，由 .bg-tint/.bg-amber/.bg-godray 消费变量）
    ============================================================ */
-body[data-period='早年立志']      { --tint: rgba(70,92,122,0.36); --sun-a: rgba(180,205,225,0.20); --sun-b: rgba(90,120,150,0.14); --ray: rgba(200,222,242,0.06); }
-body[data-period='井冈山与根据地'] { --tint: rgba(98,18,22,0.42);  --sun-a: rgba(230,120,70,0.22);  --sun-b: rgba(150,40,30,0.18);  --ray: rgba(255,180,120,0.07); }
-body[data-period='长征路上']       { --tint: rgba(72,56,40,0.42);  --sun-a: rgba(200,170,120,0.18); --sun-b: rgba(120,90,60,0.16);  --ray: rgba(230,200,150,0.05); }
-body[data-period='开国前后']       { --tint: rgba(120,80,20,0.26); --sun-a: rgba(255,210,130,0.26); --sun-b: rgba(220,120,50,0.16); --ray: rgba(255,225,160,0.09); }
-body[data-period='建设年代']       { --tint: rgba(110,80,40,0.24); --sun-a: rgba(245,205,140,0.22); --sun-b: rgba(200,130,60,0.14); --ray: rgba(255,220,160,0.07); }
+/* 时期色调已还原：全站统一金黄色残阳，切诗不改背景色 */
+body[data-period='早年立志']      { --tint: rgba(0,0,0,0); --sun-a: rgba(244,196,120,0.22); --sun-b: rgba(190,80,40,0.14); --ray: rgba(255,235,200,0.10); }
+body[data-period='井冈山与根据地'] { --tint: rgba(0,0,0,0); --sun-a: rgba(244,196,120,0.22); --sun-b: rgba(190,80,40,0.14); --ray: rgba(255,235,200,0.10); }
+body[data-period='长征路上']       { --tint: rgba(0,0,0,0); --sun-a: rgba(244,196,120,0.22); --sun-b: rgba(190,80,40,0.14); --ray: rgba(255,235,200,0.10); }
+body[data-period='开国前后']       { --tint: rgba(0,0,0,0); --sun-a: rgba(244,196,120,0.22); --sun-b: rgba(190,80,40,0.14); --ray: rgba(255,235,200,0.10); }
+body[data-period='建设年代']       { --tint: rgba(0,0,0,0); --sun-a: rgba(244,196,120,0.22); --sun-b: rgba(190,80,40,0.14); --ray: rgba(255,235,200,0.10); }
 /* 氛围浓度"关"：回到纯净原色调（不浸染、无神光） */
 body[data-atmo="off"] { --tint: rgba(0,0,0,0); --ray: rgba(255,235,200,0); }
 

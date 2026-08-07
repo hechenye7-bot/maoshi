@@ -36,33 +36,36 @@ const AppState = {
   periods: ['早年立志', '井冈山与根据地', '长征路上', '开国前后', '建设年代'],
   current: null,        // 当前诗对象
   settings: {
-    font: 'mao',
-    font_size: 'm',       // 默认适中字号：用户要求统一适中
-    bright: 0.95,         // 默认文字亮度：接近截图的轻盈奶油光
-    atmosphere: 'm',      // 氛围浓度：强/中/弱/关，默认中（控制云影/飞鸟/墨晕强度）
+    font: 'stele',        // 默认碑刻
+    font_size: 'l',       // 默认大字
+    bright: 0.4,          // 默认文字亮度最低（滑杆 min=0.4）
+    atmosphere: 'off',    // 默认氛围浓度关
     bgm_id: null,
-    bgm_on: true,
-    bgm_volume: 0.5,      // 音乐音量：0-1，默认 50%（之前 30% 太小，且朗诵时再压 0.55）
-    subtitle: true,
-    ritual_sound: true,
-    click_sound: true
+    bgm_on: true,         // BGM 打开
+    bgm_volume: 0.3,      // BGM 音量 30%
+    subtitle: false,      // 字幕关闭
+    ritual_sound: true,   // 仪式音打开
+    click_sound: true     // 点击音打开
   },
   favorites: [],        // [poemId]
   read: [],             // [poemId]
   view: 'intro'         // intro | player | catalog
 
   , load() {
-    const s = this.settings;
-    s.font = Store.get(Store.key.font, 'mao');
-    s.font_size = Store.get(Store.key.font_size, 'm');
-    s.bright = Store.get(Store.key.bright, 0.95);
-    s.bgm_id = Store.get(Store.key.bgm_id, null);
-    s.bgm_on = Store.get(Store.key.bgm_on, true);
-    s.bgm_volume = Store.get(Store.key.bgm_volume, 0.5);
-    s.atmosphere = Store.get(Store.key.atmosphere, 'm');
-    s.subtitle = Store.get(Store.key.subtitle, true);
-    s.ritual_sound = Store.get(Store.key.ritual_sound, true);
-    s.click_sound = Store.get(Store.key.click_sound, true);
+    // 每次打开网页强制恢复默认设置，覆盖 localStorage 中用户上次的设置
+    this.settings = {
+      font: 'stele',
+      font_size: 'l',
+      bright: 0.4,
+      atmosphere: 'off',
+      bgm_id: null,
+      bgm_on: true,
+      bgm_volume: 0.3,
+      subtitle: false,
+      ritual_sound: true,
+      click_sound: true
+    };
+    this.saveSettings();
     this.favorites = Store.get(Store.key.favorites, []);
     this.read = Store.get(Store.key.read, []);
   },
