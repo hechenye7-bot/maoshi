@@ -1349,17 +1349,24 @@ body[data-atmo="low"] .bg-fog { opacity: 0.5; }
 body[data-atmo="low"] .bg-cloudback { opacity: 0.6; }
 body[data-atmo="low"] .bg-godray { opacity: 0.5; }
 
-/* 低端机 / 弱硬件：去掉最吃合成的新层，保流畅（由 app.js 加 .low-end） */
+/* 低端机 / 弱硬件 / 弱网 / 减少动效：隐藏最吃合成与并发动画的层，保流畅（由 app.js 加 .low-end） */
 .low-end .bg-godray,
-.low-end .bg-cloudback { display: none; }
-.low-end .bg-fog { opacity: 0.6; }
+.low-end .bg-cloudback,
+.low-end .bg-clouds,
+.low-end .bg-dust,
+.low-end .bg-mist,
+.low-end .bg-noise { display: none; }
+.low-end .bg-fog { display: none; }
 .low-end .bg-image { animation: none; transform: scale(1.08); }   /* 静止背景，省合成 */
 .low-end .bg-amber::after { animation: none; }
+.low-end .line-text { animation: none; will-change: auto; }       /* 关每列浮动，保留静态错落 */
 
 /* 系统"减少动态"偏好：停掉最重的背景动画，避免晕眩（铁律：可读性优先） */
 @media (prefers-reduced-motion: reduce) {
-  .bg-fog, .bg-cloudback, .bg-godray, .bg-amber::after { animation: none; }
+  .bg-fog, .bg-cloudback, .bg-godray, .bg-amber::after,
+  .bg-clouds, .bg-dust, .bg-mist, .bg-noise { animation: none; display: none; }
   .bg-kenburns { animation: none; transform: scale(1.08); }
+  .line-text { animation: none; }
 }
 
 /* ============================================================

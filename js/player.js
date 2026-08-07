@@ -27,8 +27,9 @@ function setPeriodBackground(period) {
   if (currentUrl.includes(file)) return;     // 同一时期不切换
 
   const img = new Image();
-  img.onload = () => {
+  const apply = () => {
     next.style.backgroundImage = `url('${url}')`;
+    next.style.willChange = 'opacity';
     requestAnimationFrame(() => {
       next.style.opacity = '1';
       current.style.opacity = '0';
@@ -40,9 +41,16 @@ function setPeriodBackground(period) {
       current.classList.add('bg-image-next');
       current.style.opacity = '0';
       current.style.backgroundImage = '';
+      next.style.willChange = '';
     }, 2000);
   };
+  /* 先解码再淡入：大图（最大 ~1.2MB）在后台线程解码，避免切诗瞬间主线程卡顿(jank) */
   img.onerror = () => console.warn('背景图加载失败', url);
+  if (img.decode) {
+    img.onload = () => { img.decode().then(apply).catch(apply); };
+  } else {
+    img.onload = apply;
+  }
   img.src = url;
 }
 
