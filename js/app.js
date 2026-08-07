@@ -3,7 +3,7 @@
    ============================================================ */
 'use strict';
 
-const VERSION = '1.15.10';
+const VERSION = '1.15.11';
 
 /* ---------- Toast ---------- */
 const Toast = {
@@ -361,7 +361,7 @@ const SettingsUI = {
     document.getElementById('btn-reset').addEventListener('click', () => {
       AppState.settings = {
         font: 'stele', font_size: 'l', bright: 0.4, atmosphere: 'off',
-        bgm_id: null, bgm_on: true, bgm_volume: 0.75,
+        bgm_id: null, bgm_on: true, bgm_volume: 0.4,
         subtitle: false, ritual_sound: true, click_sound: true
       };
       AppState.saveSettings();
@@ -372,8 +372,8 @@ const SettingsUI = {
       document.getElementById('set-bright').value = 0.4;
       document.getElementById('set-bright-val').textContent = '40%';
       this.applyBright(0.4);
-      document.getElementById('set-bgmvol').value = 75;
-      document.getElementById('set-bgmvol-val').textContent = '75%';
+      document.getElementById('set-bgmvol').value = 40;
+      document.getElementById('set-bgmvol-val').textContent = '40%';
       PlayerAudio.refreshBgmVolume();
       this.syncFontSeg();
       this.syncAtmoSeg();
