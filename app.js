@@ -3,7 +3,7 @@
    ============================================================ */
 'use strict';
 
-const VERSION = '1.14.5';
+const VERSION = '1.15.0';
 
 /* ---------- Toast ---------- */
 const Toast = {
@@ -56,11 +56,12 @@ const UI = {
     /* 提前缓冲开场诗音频：进场即播，不在播放页才现拉解码 → 消除进场卡顿 */
     if (poem) PlayerAudio.load(poem);
 
-    /* 一声更沉的磬，时间表收紧，不再拖沓 */
-    setTimeout(() => { Ritual.qing(0.9); }, 1500);
+    /* 磬声与"字炸开爆点"同步（字爆点≈0.6s），不再固定 1500ms */
+    setTimeout(() => { Ritual.qing(0.9); }, 600);
+    /* 总时长收紧到 ≤2.5s：黑场→劈字→江山渐显→自动开诵（2450ms 转播放页即开诵） */
     setTimeout(() => {
       this.showPlayer({ poemId: poem ? poem.id : (AppState.poems[0] || null), fromIntro: true });
-    }, 2100);
+    }, 2450);
   },
 
   /* 播放页 */
@@ -517,6 +518,22 @@ function spawnSparks(x, y, n = 14) {
   }
 }
 
+/* ---------- 切诗点睛：中心暗金粒子"绽开即收拢"（不四散，收束淡出） ---------- */
+function spawnInkBurst(x, y, n = 10) {
+  for (let i = 0; i < n; i++) {
+    const s = document.createElement('div');
+    s.className = 'ink-burst';
+    const ang = (Math.PI * 2 * i) / n + Math.random() * 0.4;
+    const dist = 28 + Math.random() * 46;
+    s.style.left = x + 'px';
+    s.style.top = y + 'px';
+    s.style.setProperty('--dx', (Math.cos(ang) * dist).toFixed(1) + 'px');
+    s.style.setProperty('--dy', (Math.sin(ang) * dist).toFixed(1) + 'px');
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 950);
+  }
+}
+
 /* ---------- 浮尘粒子（疏密两层：远层细淡、近层稍亮更大；数量按屏宽自适应） ---------- */
 function initDust() {
   const layer = document.getElementById('dust-layer');
@@ -661,6 +678,9 @@ function armAutoplayFallback() {
 /* ---------- 启动 ---------- */
 (async function boot() {
   AppState.load();
+  /* 低端机 / 弱硬件判定：隐藏最吃合成的新背景层，保流畅（CSS .low-end 联动） */
+  const cores = navigator.hardwareConcurrency || 4;
+  if (cores <= 4 || window.innerWidth < 640) document.body.classList.add('low-end');
   await loadPoems();
   armAutoplayFallback();
   SettingsUI.init();

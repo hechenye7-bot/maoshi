@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>毛泽东诗词 · 沉浸式鉴赏工作台</title>
-  <link rel="stylesheet" href="css/style.css?v=1.14.5">
+  <link rel="stylesheet" href="css/style.css?v=1.15.0">
 <!-- 字体预加载：仅预加载默认毛体；碑刻(stele.otf)改为切到"碑刻"模式时按需加载，避免进站强下 24MB -->
 <link rel="preload" href="assets/fonts/maoshanzheng.ttf" as="font" type="font/ttf" crossorigin>
 </head>
@@ -13,10 +13,14 @@
 <!-- ===== 全局背景层：血色江山 · 纯图铺满 ===== -->
 <div class="bg-stage" aria-hidden="true">
   <div class="bg-image"></div>
+  <div class="bg-tint"></div>
+  <div class="bg-cloudback"></div>
   <div class="bg-amber"></div>
   <div class="bg-clouds" id="bg-clouds"></div>
-  <div class="bg-dust" id="dust-layer"></div>
   <div class="bg-mist"></div>
+  <div class="bg-fog"></div>
+  <div class="bg-dust" id="dust-layer"></div>
+  <div class="bg-godray"></div>
   <div class="bg-noise"></div>
   <div class="bg-vignette"></div>
 </div>
@@ -30,8 +34,10 @@
   <img src="assets/img/party_emblem.png" alt="党徽">
 </div>
 
-<!-- ===== 开场视图：黑场劈字 ===== -->
+<!-- ===== 开场视图：黑场劈字 → 江山渐显 ===== -->
 <section id="view-intro" class="view view-intro" aria-label="开场">
+  <div class="intro-veil"></div>
+  <div class="intro-ray"></div>
   <div class="intro-inner">
     <h1 class="intro-title" id="intro-title">江山如此多娇</h1>
     <p class="intro-sub" id="intro-sub"></p>
@@ -211,10 +217,10 @@
   </defs>
 </svg>
 
-<script src="js/data.js?v=1.14.5"></script>
-<script src="js/audio.js?v=1.14.5"></script>
-<script src="js/player.js?v=1.14.5"></script>
-<script src="js/catalog.js?v=1.14.5"></script>
-<script src="js/app.js?v=1.14.5"></script>
+<script src="js/data.js?v=1.15.0"></script>
+<script src="js/audio.js?v=1.15.0"></script>
+<script src="js/player.js?v=1.15.0"></script>
+<script src="js/catalog.js?v=1.15.0"></script>
+<script src="js/app.js?v=1.15.0"></script>
 </body>
 </html>

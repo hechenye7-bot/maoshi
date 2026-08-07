@@ -1,0 +1,1403 @@
+/* ============================================================
+   毛泽东诗词 · 沉浸式鉴赏工作台
+   革命宣传画 · 红光亮 · 血火江山
+   ============================================================ */
+
+/* ---------- 字体 ---------- */
+@font-face {
+  font-family: 'MaoBrush';
+  src: url('../assets/fonts/maoshanzheng.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Stele';
+  src: url('../assets/fonts/stele.otf') format('opentype');
+  font-display: swap;
+}
+
+/* ---------- 时期色调变量（④ 电影分级，@property 注册以便 2s 平滑过渡） ---------- */
+@property --sun-a { syntax: '<color>'; inherits: true; initial-value: rgba(244,196,120,0.22); }
+@property --sun-b { syntax: '<color>'; inherits: true; initial-value: rgba(190,80,40,0.14); }
+@property --tint  { syntax: '<color>'; inherits: true; initial-value: rgba(0,0,0,0); }
+@property --ray   { syntax: '<color>'; inherits: true; initial-value: rgba(255,235,200,0.06); }
+
+/* ---------- 变量 ---------- */
+:root {
+  --red: #C8102E;          /* 革命红 */
+  --red-deep: #8A0F1F;     /* 深红 */
+  --red-dark: #5A0A14;     /* 暗红 */
+  --ink: #1A0F10;          /* 墨黑底 */
+  --ink-soft: #241518;
+  --paper: #F2E7CC;        /* 米白 */
+  --paper-dim: rgba(242, 231, 204, 0.72);
+  --gold: #D4A017;         /* 暗金点缀 */
+  --gold-soft: rgba(212, 160, 23, 0.5);
+  --font-mao: 'MaoBrush', 'Stele', 'Source Han Serif SC', 'Noto Serif CJK SC', 'Kaiti SC', 'STKaiti', serif;
+  --font-ui: 'Microsoft YaHei', 'PingFang SC', 'SimHei', system-ui, sans-serif;
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  /* 飞鸟剪影（鸥翼 "m" 形），用于 mask */
+  --bird-mask: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2016'%3E%3Cpath%20d='M2%2014%20Q9%202%2016%2012%20Q23%202%2030%2014'%20fill='none'%20stroke='%23000'%20stroke-width='3.2'%20stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+/* ---------- 重置 ---------- */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  font-family: var(--font-ui);
+  color: var(--paper);
+  background: var(--ink);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   全局装饰：古卷天头地脚细金线
+   ============================================================ */
+body::before, body::after {
+  content: '';
+  position: fixed; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 6%,
+    rgba(233,209,160,0.42) 28%,
+    rgba(233,209,160,0.66) 50%,
+    rgba(233,209,160,0.42) 72%,
+    transparent 94%);
+  z-index: 6; pointer-events: none;
+}
+body::before { top: 28px; }
+body::after { bottom: 28px; }
+
+/* ============================================================
+   全文注释式背景层：血色江山 · 纯图铺满
+   ============================================================ */
+.bg-stage {
+  position: fixed; inset: 0;
+  z-index: 0;
+  background: #0e0807;
+  overflow: hidden;
+}
+.bg-stage > div { position: absolute; }
+
+/* 1. 血色江山（用户素材图 · 全屏铺满） */
+.bg-image {
+  inset: 0;
+  background: url('../assets/img/jsh.jpg') center center / cover no-repeat;
+  transform-origin: 52% 46%;
+  /* 更慢更远的航拍推近 + 极轻水平往复（220s 一周期，像镜头缓缓逼近） */
+  animation: bg-kenburns 220s ease-in-out infinite alternate;
+}
+@keyframes bg-kenburns {
+  from { transform: scale(1.02) translateX(-2.2%); }
+  to   { transform: scale(1.18) translateX(2.2%); }
+}
+
+/* 2. 云霞暖光（左上余晖 · 缓慢呼吸 + 极淡升降，作"残阳"光晕脉动） */
+.bg-amber {
+  inset: 0;
+  background:
+    radial-gradient(ellipse 44% 32% at 24% 20%, var(--sun-a, rgba(244,196,120,0.22)), transparent 72%),
+    radial-gradient(ellipse 38% 28% at 82% 74%, var(--sun-b, rgba(190,80,40,0.14)), transparent 72%);
+  /* 残阳颜色随时期变量平滑过渡（④ 电影分级色调） */
+  transition: --sun-a 2s ease, --sun-b 2s ease;
+  animation: amber-breathe 16s ease-in-out infinite alternate,
+             amber-float 26s ease-in-out infinite alternate;
+}
+/* 残阳第二层：更淡更大，光斑随时间极缓漂移（"夕阳在移动"） */
+.bg-amber::after {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 44% at 26% 22%, var(--sun-b, rgba(190,80,40,0.14)), transparent 74%);
+  filter: blur(6px);
+  opacity: 0.9;
+  animation: sun-drift 60s ease-in-out infinite alternate;
+}
+@keyframes sun-drift {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(4%, 3%); }
+}
+@keyframes amber-breathe {
+  from { opacity: 0.62; }
+  to { opacity: 1.12; }
+}
+/* 残阳极淡缓慢升降 */
+@keyframes amber-float {
+  from { transform: translateY(10px); }
+  to   { transform: translateY(-14px); }
+}
+
+/* 3. 云海漂移（极淡） */
+.bg-clouds {
+  inset: 0; pointer-events: none; overflow: hidden;
+}
+.cloud {
+  position: absolute;
+  height: 60px;
+  background:
+    radial-gradient(ellipse 60% 80% at 50% 50%,
+      rgba(240,215,180,0.20) 0%,
+      rgba(240,215,180,0.09) 35%,
+      transparent 75%);
+  filter: blur(20px);
+  animation: cloud-drift linear infinite;
+  will-change: transform;
+}
+@keyframes cloud-drift {
+  0% { transform: translateX(-30vw); }
+  100% { transform: translateX(130vw); }
+}
+
+.bg-dust { inset: 0; }
+.dust {
+  position: absolute;
+  width: 2px; height: 2px;
+  background: rgba(255,238,210,0.5);
+  border-radius: 50%;
+  animation: dust-float linear infinite;
+}
+@keyframes dust-float {
+  0% { transform: translateY(0); opacity: 0; }
+  12% { opacity: 0.65; }
+  88% { opacity: 0.3; }
+  100% { transform: translateY(-120px); opacity: 0; }
+}
+
+.bg-noise {
+  inset: 0;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.9'/%3E%3C/svg%3E");
+}
+
+/* 3. 暗角（轻微 · 让诗词区浮起但不挡图） */
+.bg-vignette {
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 46%, transparent 60%, rgba(8,4,3,0.30) 92%, rgba(4,2,1,0.55) 100%),
+    linear-gradient(180deg, rgba(8,4,3,0.18) 0%, transparent 14%, transparent 86%, rgba(8,4,3,0.28) 100%);
+}
+
+/* ② 主色调浸染层（④ 上色）：颜色由 --tint 变量驱动，2s 平滑过渡，multiply 融进江山 */
+.bg-tint {
+  inset: 0; pointer-events: none;
+  background-color: var(--tint, rgba(0,0,0,0));
+  transition: background-color 2s ease;
+  mix-blend-mode: multiply;
+}
+/* ② 超远山影/霞光底衬：极淡极大极慢，制造层次纵深 */
+.bg-cloudback {
+  inset: 0; pointer-events: none; overflow: hidden;
+  background:
+    radial-gradient(ellipse 120% 70% at 50% 118%, rgba(20,10,8,0.5), transparent 70%),
+    radial-gradient(ellipse 92% 52% at 30% -8%, rgba(150,90,50,0.10), transparent 72%);
+  transform: scale(1.15);
+  filter: blur(12px);
+  animation: cloudback-drift 240s ease-in-out infinite alternate;
+}
+@keyframes cloudback-drift {
+  from { transform: scale(1.12) translateX(-2%); }
+  to   { transform: scale(1.20) translateX(2%); }
+}
+/* ② 山脚淡雾：底部极淡流动水汽，左右极缓漂移、低透明度、模糊 */
+.bg-fog {
+  inset: 0; pointer-events: none; overflow: hidden;
+  background: radial-gradient(ellipse 84% 30% at 50% 102%, rgba(214,198,170,0.12), transparent 72%);
+  filter: blur(22px);
+  animation: fog-drift 90s ease-in-out infinite alternate;
+}
+@keyframes fog-drift {
+  from { transform: translateX(-4%) translateY(0); }
+  to   { transform: translateX(6%) translateY(-1.5%); }
+}
+/* ④ 体积光（神光）：极淡光柱左右极缓摆动，颜色由 --ray 驱动，2s 过渡 */
+.bg-godray {
+  inset: 0; pointer-events: none; overflow: hidden;
+  background: linear-gradient(102deg, transparent 44%, var(--ray, rgba(255,235,200,0.06)) 50%, transparent 56%);
+  filter: blur(30px);
+  opacity: 0.9;
+  animation: godray-sway 70s ease-in-out infinite alternate;
+  transition: --ray 2s ease;
+}
+@keyframes godray-sway {
+  from { transform: translateX(-6%) rotate(-0.6deg); }
+  to   { transform: translateX(6%) rotate(0.6deg); }
+}
+
+/* ============================================================
+   视图通用：显式高度撑满视口（铁律 4）
+   ============================================================ */
+.view {
+  position: relative; z-index: 1;
+  height: 100vh; height: 100dvh;
+  width: 100%;
+  display: flex; flex-direction: column;
+}
+.view[hidden] { display: none; }
+
+/* 通用转场 */
+.view.enter { animation: view-enter 0.4s var(--ease) both; }
+@keyframes view-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ============================================================
+   开场：黑场劈字
+   ============================================================ */
+.view-intro {
+  align-items: center; justify-content: center;
+  background: transparent;       /* 黑场交由 .intro-veil 控制，便于"露出江山"渐显 */
+}
+.intro-inner { text-align: center; position: relative; z-index: 2; }
+.intro-title {
+  font-family: var(--font-mao);
+  font-size: clamp(56px, 8vw, 108px);
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  color: var(--paper);
+  position: relative;
+  opacity: 0;
+  text-shadow: 0 0 18px rgba(200,16,46,0.5), 0 2px 6px rgba(0,0,0,0.8);
+  /* 劈字炸出 + 墨团爆裂 + 金边闪（三层动画叠加，爆点≈0.6s 与磬声同步） */
+  animation: intro-split 1.2s var(--ease) 0.55s forwards,
+             intro-ink 1.0s ease-out 0.5s forwards,
+             intro-gold 1.4s ease-out 0.9s forwards;
+}
+/* 墨团：字爆出前先聚成一团浓墨，爆点瞬间膨胀炸开消散（"从墨中炸出成形"） */
+.intro-title::before {
+  content: ''; position: absolute; inset: -34%; z-index: -1;
+  background: radial-gradient(circle at 50% 50%,
+    rgba(6,3,2,0.97) 0%, rgba(6,3,2,0.78) 38%, rgba(6,3,2,0.0) 72%);
+  filter: blur(7px);
+  opacity: 1; transform: scale(1.45);
+  animation: intro-inkball 1.35s ease-out 0.45s forwards;
+  pointer-events: none;
+}
+@keyframes intro-inkball {
+  0%   { opacity: 1; transform: scale(1.5); filter: blur(2px); }
+  34%  { opacity: 1; transform: scale(1.72); filter: blur(0); }   /* 墨团聚合膨胀 */
+  60%  { opacity: 0.92; transform: scale(2.15); filter: blur(15px); } /* 炸开 */
+  100% { opacity: 0; transform: scale(2.6); filter: blur(26px); }
+}
+/* 金边描边：字成形后一道暗金描边闪过（"金丝裂纹沿字迹游走"的收束感） */
+@keyframes intro-gold {
+  0%, 42% { text-shadow: 0 0 18px rgba(200,16,46,0.5), 0 2px 6px rgba(0,0,0,0.85); }
+  56%     { text-shadow: 0 0 28px rgba(244,196,120,0.95), 0 0 11px rgba(255,240,200,0.85), 0 2px 6px rgba(0,0,0,0.85); }
+  100%    { text-shadow: 0 0 18px rgba(200,16,46,0.5), 0 2px 6px rgba(0,0,0,0.85); }
+}
+@keyframes intro-split {
+  0%   { opacity: 0; transform: scale(1.95) translateY(8px); filter: blur(13px); }
+  42%  { opacity: 1; transform: scale(0.93) translateY(0); filter: blur(1.2px); }
+  100% { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+/* 墨晕爆裂：劈字瞬间一圈墨色由内向外炸开再收（"推开历史大门"的冲击） */
+@keyframes intro-ink {
+  0%   { box-shadow: 0 0 0 0 rgba(18,9,5,0); }
+  22%  { box-shadow: 0 0 70px 26px rgba(18,9,5,0.55), 0 0 120px 60px rgba(200,16,46,0.18); }
+  70%  { box-shadow: 0 0 90px 40px rgba(18,9,5,0); }
+  100% { box-shadow: 0 0 0 0 rgba(18,9,5,0); }
+}
+/* 金丝裂纹：劈字瞬间一道金线横扫而过（补全笔画的"裂"感） */
+.intro-title::after {
+  content: ''; position: absolute; top: -8%; left: -50%; width: 46%; height: 116%;
+  background: linear-gradient(100deg, transparent 0%, rgba(255,246,220,0.0) 35%,
+              rgba(255,246,220,0.92) 50%, rgba(255,246,220,0.0) 65%, transparent 100%);
+  transform: skewX(-16deg);
+  opacity: 0; pointer-events: none; mix-blend-mode: screen;
+  animation: intro-crack 0.95s var(--ease) 0.92s forwards;
+}
+@keyframes intro-crack {
+  0%   { left: -50%; opacity: 0; }
+  18%  { opacity: 0.95; }
+  100% { left: 130%; opacity: 0; }
+}
+.intro-sub {
+  margin-top: 26px;
+  font-size: 16px;
+  letter-spacing: 0.5em;
+  color: var(--paper-dim);
+  opacity: 0;
+  animation: fade-in 0.8s var(--ease) 1.9s forwards;
+}
+@keyframes fade-in { to { opacity: 1; } }
+
+/* 黑场蒙版：前 ~1.4s 全黑，字炸开后于 ~1.4→2.3s 渐隐，露出背后"缓缓推近的血色江山" */
+.intro-veil {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: #000;
+  animation: intro-veil 2.5s ease forwards;
+}
+@keyframes intro-veil {
+  0%, 56% { opacity: 1; }
+  92%     { opacity: 0; }
+  100%    { opacity: 0; }
+}
+/* 金光掠过：露江山瞬间的"镜头拉开"光带（自左向右） */
+.intro-ray {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(105deg, transparent 38%, rgba(255,238,200,0.16) 50%, transparent 62%);
+  transform: translateX(-130%); opacity: 0; mix-blend-mode: screen;
+  animation: intro-ray 1.1s ease-out 1.35s forwards;
+}
+@keyframes intro-ray {
+  0%   { transform: translateX(-130%); opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: translateX(130%); opacity: 0; }
+}
+
+/* ============================================================
+   播放页
+   ============================================================ */
+.player-head {
+  position: absolute;
+  top: 46px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  pointer-events: none;
+  display: flex; align-items: baseline; gap: 20px;
+  text-align: center;
+  padding: 10px 34px;
+  background: radial-gradient(ellipse 50% 100% at 50% 50%, rgba(8,3,2,0.55) 0%, transparent 76%);
+  border-radius: 999px;
+}
+body.font-mao .player-title { font-family: var(--font-mao); }
+.player-title {
+  font-family: var(--font-mao);
+  font-size: clamp(30px, 3.4vw, 48px);
+  font-weight: 400;
+  letter-spacing: 0.34em;
+  color: #f4ead0;                       /* 极浅暖奶油：接近截图的米白柔光 */
+  text-shadow:
+    0 0 4px rgba(255,245,220,0.9),
+    0 0 10px rgba(255,230,180,0.5),
+    0 1px 1px rgba(40,22,6,0.5);
+  filter: none;
+  white-space: nowrap;
+}
+body.font-stele .player-title { font-family: 'Stele', 'SimSun', 'Songti SC', serif; }
+.player-byline {
+  position: absolute;
+  bottom: 82px;
+  left: 0; right: 0;
+  text-align: center;
+  font-size: 15px;
+  letter-spacing: 0.5em;
+  color: #f4ead0;                       /* 极浅暖奶油 */
+  text-shadow: 0 0 4px rgba(255,245,220,0.9), 0 0 10px rgba(255,230,180,0.5), 0 1px 1px rgba(40,22,6,0.5);
+  white-space: nowrap;
+  z-index: 3;
+  pointer-events: none;
+  padding: 8px 0;
+  background: radial-gradient(ellipse 40% 100% at 50% 50%, rgba(8,3,2,0.45) 0%, transparent 72%);
+}
+.player-seal {
+  position: absolute;
+  right: 44px; top: 44px;
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mao);
+  font-size: 20px;
+  color: #fff;
+  background: rgba(200,16,46,0.82);
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.player-seal.on { opacity: 1; }
+
+/* 正文：竹简 · 每 2 字一片、多片横排成一行 · 三态显示 */
+.player-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  padding: 96px 0 96px 0;  /* 上下留白，避免正文顶标题/落款 */
+}
+/* 文字可读性衬底（极淡径向暗色，保证半透字在亮背景可读） */
+.player-body::before {
+  content: '';
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 74vw; height: 70vh;
+  background: radial-gradient(ellipse 50% 50% at 50% 50%,
+    rgba(8,3,2,0.42) 0%,
+    rgba(8,3,2,0.20) 52%,
+    transparent 76%);
+  z-index: 0;
+  pointer-events: none;
+}
+/* 枯笔颗粒质感（v1.13）：静态噪点纹理覆盖文字区，替代逐列 SVG 滤镜 —— 零滤镜零开销 */
+.player-body::after {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  opacity: 0.04;
+  z-index: 2;
+  pointer-events: none;
+}
+body[data-atmo="off"] .player-body::after { display: none; }
+.scroll-wrap {
+  position: relative;
+  z-index: 1;
+  display: table;
+  margin: 0 auto;
+  max-width: 94vw;
+  max-height: 88vh;
+  padding: 2vh 0;
+  text-align: center;
+}
+.stanza-row {
+  display: block;
+  font-size: 0;
+  margin: 12px 0;          /* 行距加大（v1.12）：长诗更空灵透气 */
+  white-space: nowrap;
+  text-align: center;
+  line-height: 1;   /* 单行横排：避免行间空隙 */
+}
+.line-block {
+  position: relative;
+  display: inline-block;
+  vertical-align: top;                 /* 顶部对齐后错落更明显 */
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  padding: 16px 4px;
+  opacity: 0;                        /* pending：未读隐形，但占位不跳（预置字位槽） */
+  transition: opacity 0.9s ease-out;      /* 墨晕浮现：淡→浓晕开 */
+  transform: translateY(var(--off, 0));   /* 错落偏移走 transform，不参与布局高度 */
+  animation: float-sway var(--float-dur, 4s) ease-in-out infinite alternate;
+  animation-delay: var(--float-delay, 0s);
+  will-change: transform;
+  margin: 0 var(--col-gap, 9px);
+}
+@keyframes float-sway {
+  from { transform: translateY(var(--off, 0)); }
+  to   { transform: translateY(calc(var(--off, 0) - 12px)); } /* 浮动叠加在错落之上 */
+}
+.line-block::before, .line-block::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  width: 12px; height: 1.2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(233,209,160,0.55) 50%, transparent 100%);
+  border-radius: 1px;
+  transform: translateX(-50%);
+}
+.line-block::before { top: 4px; }
+.line-block::after { bottom: 4px; }
+/* 揭示三态：未读隐形(pending opacity0) → 已现留存(revealed 淡) → 当前高亮(current 实) */
+.line-block.revealed { opacity: var(--line-op, 0.75); }
+.line-block.current {
+  opacity: 1;
+  transition: opacity 0.12s linear;   /* 瞬时亮起，牢牢咬住朗读节奏 */
+}
+/* 压轴句（末句名句）：墨色更实更亮，形成视觉重心（不改字号，守统一字号铁律） */
+.line-block.hero.revealed { opacity: 0.86; }
+.line-block.hero.current .line-text {
+  text-shadow:
+    0 0 1px rgba(20,10,4,0.95),
+    0 0 4px rgba(255,248,228,1),
+    0 0 8px rgba(255,234,184,0.85),
+    0 0 9px rgba(255,214,150,0.55),
+    0 0 3px rgba(140,15,30,0.45);
+}
+.line-block .line-text {
+  font-size: 32px;
+  line-height: 1.20;
+  letter-spacing: 0.08em;               /* 字距再收紧：笔画更挺、更锋锐（v1.12） */
+  color: #f4ead0;                       /* 极浅暖奶油：接近截图米白柔光 */
+  font-weight: 600;
+  /* 光影层次（v1.12）：紧致亮边让字形边缘更实更锐 + 柔和暖辉，笔锋有"写出来"的立体感 */
+  text-shadow:
+    0 0 1px rgba(255,245,220,0.95),
+    0 0 3px rgba(255,245,220,0.55),
+    0 0 8px rgba(255,232,180,0.40),
+    0 1px 1px rgba(40,22,6,0.5);
+  filter: none;                         /* 默认无滤镜，字形绝对锐利 */
+}
+/* 落墨晕开：揭示时由淡到浓（opacity），氛围浓度控制时长；与 feibai 互不冲突 */
+.revealed .line-text, .current .line-text {
+  animation: ink-bloom var(--bloom-dur, 0.95s) ease-out both;
+}
+@keyframes ink-bloom {
+  from { opacity: 0.30; }
+  to   { opacity: 1; }
+}
+body.font-mao .line-text {
+  font-family: var(--font-mao);
+  /* 毛体更瘦劲锋芒（v1.12）：横向再收、纵向再拉，笔锋更锐；仍克制不畸变 */
+  transform: scale(0.92, 1.08);
+  transform-origin: 50% 50%;
+  /* 枯笔颗粒质感改由 .player-body::after 静态噪点纹理承担（v1.13）：
+     移除逐列 SVG 滤镜（每列一个 filter 合成层 = 卡顿头号），流畅度优先 */
+}
+/* 氛围关：去掉墨晕（filter 已无，仅关动画） */
+body[data-atmo="off"] .line-text { animation: none; }
+body.font-stele .line-text {
+  font-family: 'Stele', 'Source Han Serif SC', 'Songti SC', 'SimSun', 'KaiTi', 'Kaiti SC', 'STKaiti', serif;
+  font-weight: 600;
+}
+
+/* 当前句：金色细线竹节 + 文字呼吸光 */
+.line-block.current::before,
+.line-block.current::after {
+  background: linear-gradient(90deg, transparent 0%, rgba(233,209,160,1) 50%, transparent 100%);
+  height: 1.6px;
+  box-shadow: 0 0 5px rgba(233,209,160,0.65);
+}
+.line-block.current .line-text {
+  /* 当前句：紧致暗描边（毛边浸染）+ 含蓄金光 + 极淡殷红描边点睛，全部 ≤8px 不朦胧 */
+  text-shadow:
+    0 0 1px rgba(20,10,4,0.9),
+    0 0 3px rgba(255,248,228,0.95),
+    0 0 7px rgba(255,234,184,0.70),
+    0 0 8px rgba(255,222,170,0.40),
+    0 0 2px rgba(140,15,30,0.35);
+}
+.scroll-wrap.paused .line-block { opacity: var(--line-op, 0.72); }
+.scroll-wrap.paused .line-block.current { opacity: 1; }
+/* 同步字幕（唯一字幕） */
+.player-subtitle {
+  position: absolute; bottom: 118px; left: 0; right: 0;
+  text-align: center;
+  font-size: 17px;
+  letter-spacing: 0.32em;
+  color: var(--paper);
+  text-shadow: 0 0 14px rgba(0,0,0,0.98), 0 1px 2px rgba(0,0,0,0.85);
+  opacity: 0.95;
+  pointer-events: none;
+  z-index: 2;
+  transition: opacity 0.4s ease;
+}
+.player-subtitle.hidden { visibility: hidden; }
+
+/* ============================================================
+   目录页
+   ============================================================ */
+.view-catalog {
+  align-items: center;
+  justify-content: center;
+  padding: 9vh 6vw 12vh;
+}
+.catalog-head {
+  position: absolute; top: 0; left: 0; right: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 26px 40px 18px;
+}
+.catalog-heading {
+  font-family: var(--font-mao);
+  font-size: 30px; font-weight: 400;
+  letter-spacing: 0.34em;
+  text-shadow: 0 0 14px rgba(200,16,46,0.5), 0 1px 3px rgba(0,0,0,0.7);
+}
+.catalog-actions { display: flex; gap: 12px; }
+.btn-cat {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  color: var(--paper);
+  background: rgba(138,15,31,0.55);
+  border: 1px solid rgba(212,160,23,0.45);
+  border-radius: 6px;
+  padding: 7px 18px;
+  cursor: pointer;
+  transition: all 0.25s var(--ease);
+}
+.btn-cat:hover { background: rgba(200,16,46,0.75); border-color: var(--gold); }
+.btn-cat.on { background: var(--red); border-color: var(--gold); color: #fff; }
+
+.catalog-layout {
+  width: 100%; height: 100%;
+  display: flex; gap: 34px;
+  align-items: stretch;
+  max-width: 1400px;
+}
+
+/* 时期导航：旗帜/标牌 */
+.period-nav {
+  display: flex; flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+  width: 190px; flex-shrink: 0;
+}
+.period-item {
+  position: relative;
+  font-size: 15px;
+  letter-spacing: 0.18em;
+  color: var(--paper-dim);
+  background: rgba(26,15,16,0.55);
+  border-left: 3px solid rgba(212,160,23,0.4);
+  border-radius: 4px;
+  padding: 13px 16px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.25s var(--ease);
+}
+.period-item:hover { color: var(--paper); background: rgba(138,15,31,0.5); }
+.period-item.active {
+  color: #fff;
+  background: linear-gradient(90deg, var(--red-deep), var(--red-dark));
+  border-left-color: var(--gold);
+}
+.period-item .period-count {
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px; opacity: 0.7;
+}
+
+/* 诗卡列表 */
+.poem-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 6px 10px 30px 4px;
+}
+.poem-list::-webkit-scrollbar { width: 6px; }
+.poem-list::-webkit-scrollbar-thumb { background: rgba(212,160,23,0.35); border-radius: 3px; }
+.poem-card {
+  position: relative;
+  display: flex; align-items: center; gap: 18px;
+  background: rgba(26,15,16,0.62);
+  border: 1px solid rgba(242,231,204,0.14);
+  border-radius: 10px;
+  padding: 16px 22px 16px 30px;
+  cursor: pointer;
+  transition: all 0.25s var(--ease);
+}
+.poem-card::before {
+  content: '★';
+  position: absolute; left: 10px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--red);
+  font-size: 10px;
+  opacity: 0.5;
+}
+.poem-card:hover {
+  border-color: rgba(212,160,23,0.55);
+  background: rgba(138,15,31,0.42);
+  transform: translateX(3px);
+}
+.poem-card .pc-title {
+  font-family: var(--font-mao);
+  font-size: 22px; font-weight: 400;
+  letter-spacing: 0.18em;
+  color: var(--paper);
+}
+.poem-card .pc-info { flex: 1; min-width: 0; }
+.poem-card .pc-preview {
+  margin-top: 7px;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: rgba(242,231,204,0.55);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+}
+.poem-card .pc-year { font-size: 12px; color: var(--paper-dim); margin-top: 5px; letter-spacing: 0.2em; }
+.poem-card .pc-read {
+  margin-left: auto;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: 0 0 0 1px rgba(242,231,204,0.35);
+  transition: all 0.2s ease;
+}
+.poem-card.read .pc-read { background: var(--gold); box-shadow: 0 0 10px rgba(212,160,23,0.8); }
+.poem-card .pc-fav {
+  width: 38px; height: 38px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mao);
+  font-size: 16px;
+  color: var(--paper-dim);
+  border: 1px solid rgba(242,231,204,0.28);
+  border-radius: 8px;
+  cursor: pointer;
+  background: rgba(26,15,16,0.6);
+  transition: all 0.2s ease;
+  letter-spacing: 0.1em;
+}
+.poem-card .pc-fav.on {
+  color: #fff;
+  background: var(--red);
+  border-color: var(--gold);
+  box-shadow: 0 0 10px rgba(200,16,46,0.6);
+}
+
+/* 时期引子转场层 */
+.period-quote {
+  position: fixed; inset: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.86);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s var(--ease);
+}
+.period-quote.show { opacity: 1; }
+/* 墨晕浮现：引子大字背后一团浓墨由内向外显形（"墨晕浮现"） */
+.period-quote::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background: radial-gradient(ellipse 50% 40% at 50% 50%, rgba(8,4,3,0.85), rgba(8,4,3,0) 72%);
+  opacity: 0; transform: scale(1.12);
+  transition: opacity 0.5s ease, transform 0.8s var(--ease);
+}
+.period-quote.show::before { opacity: 1; transform: scale(1); }
+.period-quote .pq-text {
+  font-family: var(--font-mao);
+  font-size: clamp(40px, 6vw, 76px);
+  letter-spacing: 0.14em;
+  color: var(--paper);
+  text-shadow: 0 0 20px rgba(200,16,46,0.6), 0 2px 5px rgba(0,0,0,0.8);
+  opacity: 0;
+  transition: opacity 0.4s var(--ease), text-shadow 0.6s ease;
+}
+/* 金光描边：引子浮现时一道暗金描边勾出（"金光描边" + 磬声同步） */
+.period-quote.show .pq-text {
+  opacity: 1;
+  text-shadow: 0 0 26px rgba(244,196,120,0.7), 0 0 12px rgba(255,240,200,0.5), 0 2px 5px rgba(0,0,0,0.8);
+}
+
+/* ============================================================
+   党徽（左上角装饰）
+   ============================================================ */
+.party-flag {
+  position: fixed;
+  top: 22px; left: 22px;
+  width: 64px; height: 64px;
+  z-index: 8;
+  opacity: 0.95;
+  filter: drop-shadow(0 2px 10px rgba(0,0,0,0.6)) drop-shadow(0 0 6px rgba(212,160,23,0.5));
+  pointer-events: none;
+  animation: flag-breath 4s ease-in-out infinite alternate;
+}
+@keyframes flag-breath {
+  from { opacity: 0.85; }
+  to { opacity: 1; }
+}
+.party-flag img {
+  width: 100%; height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+/* ============================================================
+   画卷裱框（左右竖金线 · 与天头地脚成完整画框）
+   ============================================================ */
+.frame-v {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px; height: 66vh;
+  background: linear-gradient(180deg,
+    transparent 4%,
+    rgba(233,209,160,0.38) 26%,
+    rgba(233,209,160,0.58) 50%,
+    rgba(233,209,160,0.38) 74%,
+    transparent 96%);
+  z-index: 6;
+  pointer-events: none;
+}
+.frame-left { left: 32px; }
+.frame-right { right: 32px; }
+
+/* ============================================================
+   沉浸控制条
+   ============================================================ */
+.controlbar {
+  position: fixed;
+  left: 50%; bottom: 36px;
+  transform: translateX(-50%) translateY(200%) scale(0.92);
+  opacity: 0;
+  visibility: hidden;
+  z-index: 15;
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(20,12,10,0.72);
+  backdrop-filter: blur(14px) saturate(1.1);
+  border: 1px solid rgba(212,180,120,0.2);
+  border-radius: 999px;
+  padding: 10px 18px;
+  box-shadow: 0 14px 36px rgba(0,0,0,0.5), inset 0 1px 0 rgba(212,180,120,0.08);
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease, visibility 0.35s;
+}
+.controlbar.show {
+  transform: translateX(-50%) translateY(0) scale(1);
+  opacity: 1;
+  visibility: visible;
+}
+.cb-btn {
+  width: 42px; height: 42px;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent;
+  border: none;
+  color: rgba(242,231,204,0.65);
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: all 0.25s var(--ease);
+}
+.cb-btn:hover { color: #fff; background: rgba(212,180,120,0.12); }
+.cb-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.2; }
+#cb-play .ic-pause { display: none; }
+#cb-play.playing .ic-play { display: none; }
+#cb-play.playing .ic-pause { display: block; }
+#cb-play svg { fill: currentColor; stroke: none; }
+.cb-main {
+  width: 52px; height: 52px;
+  background: rgba(233,209,160,0.96);
+  color: #1a1209;
+  border: 1px solid rgba(233,209,160,0.4);
+  border-radius: 50%;
+  box-shadow: 0 0 24px rgba(233,209,160,0.25), inset 0 1px 0 rgba(255,255,255,0.4);
+  position: relative;
+}
+.cb-main::after {
+  content: '';
+  position: absolute; inset: -6px;
+  border: 1px solid rgba(233,209,160,0.55);
+  border-radius: 50%;
+  animation: main-pulse 2.4s ease-out infinite;
+  pointer-events: none;
+}
+@keyframes main-pulse {
+  0% { opacity: 0.7; transform: scale(0.9); }
+  100% { opacity: 0; transform: scale(1.5); }
+}
+.cb-main:hover { background: #f4e3b6; color: #100906; }
+.cb-divider { width: 1px; height: 22px; background: rgba(212,180,120,0.18); margin: 0 4px; }
+.cb-fav {
+  font-family: var(--font-mao);
+  font-size: 15px;
+  color: rgba(242,231,204,0.55);
+  border: 1px solid rgba(242,231,204,0.18);
+  letter-spacing: 0.1em;
+}
+.cb-fav.on {
+  color: #fff;
+  background: var(--red);
+  border-color: var(--gold);
+  box-shadow: 0 0 12px rgba(200,16,46,0.5);
+}
+
+/* ============================================================
+   面板（设置 / 赏析）
+   ============================================================ */
+.panel {
+  position: fixed; inset: 0; z-index: 30;
+  display: flex; align-items: flex-end; justify-content: center;
+  background: rgba(10,4,5,0.55);
+  animation: fade-in 0.3s var(--ease) both;
+}
+.panel[hidden] { display: none; }
+.panel-card {
+  width: min(640px, 94vw);
+  max-height: 72vh;
+  overflow-y: auto;
+  background:
+    radial-gradient(ellipse 2px 1px at 10% 20%, rgba(242,231,204,0.10) 0%, transparent 70%),
+    radial-gradient(ellipse 1px 2px at 40% 60%, rgba(242,231,204,0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 1px 1px at 78% 35%, rgba(242,231,204,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 2px 2px at 22% 85%, rgba(242,231,204,0.09) 0%, transparent 70%),
+    radial-gradient(ellipse 1px 1px at 90% 78%, rgba(242,231,204,0.06) 0%, transparent 70%),
+    linear-gradient(rgba(26,15,16,0.94), rgba(26,15,16,0.94)),
+    var(--paper);
+  border: 1px solid rgba(212,160,23,0.45);
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.6);
+  animation: panel-up 0.3s var(--ease) both;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+@keyframes panel-up {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.panel-head {
+  position: sticky; top: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 26px;
+  background: rgba(26,15,16,0.97);
+  border-bottom: 1px solid rgba(212,160,23,0.3);
+}
+.panel-head h3 {
+  font-family: var(--font-mao);
+  font-size: 20px; font-weight: 400;
+  letter-spacing: 0.4em;
+  color: var(--paper);
+  position: relative;
+  padding-left: 14px;
+}
+.panel-head h3::before {
+  content: '';
+  position: absolute; left: 0; top: 50%;
+  transform: translateY(-50%);
+  width: 4px; height: 22px;
+  background: var(--red);
+  box-shadow: 0 0 8px rgba(200,16,46,0.6);
+}
+.panel-close {
+  width: 34px; height: 34px;
+  background: transparent; border: none;
+  color: var(--paper-dim); font-size: 16px;
+  cursor: pointer; border-radius: 8px;
+}
+.panel-close:hover { color: #fff; background: rgba(200,16,46,0.4); }
+.panel-body { padding: 22px 26px 30px; }
+
+.set-row {
+  display: flex; align-items: center;
+  gap: 16px;
+  padding: 13px 0;
+  border-bottom: 1px solid rgba(242,231,204,0.1);
+}
+.set-row:last-child { border-bottom: none; }
+.set-label {
+  width: 96px; flex-shrink: 0;
+  font-size: 14px; color: var(--paper-dim);
+  letter-spacing: 0.14em;
+}
+.set-seg { display: flex; gap: 6px; }
+.set-seg button {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--paper-dim);
+  background: rgba(138,15,31,0.4);
+  border: 1px solid rgba(242,231,204,0.2);
+  border-radius: 6px;
+  padding: 6px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.set-seg button.active {
+  color: #fff; background: var(--red);
+  border-color: var(--gold);
+}
+.set-seg button:hover:not(.active) { color: var(--paper); }
+.set-row select {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--paper);
+  background: rgba(138,15,31,0.4);
+  border: 1px solid rgba(242,231,204,0.2);
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.set-switch {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--paper-dim);
+  cursor: pointer;
+}
+.set-switch input { accent-color: var(--red); width: 15px; height: 15px; }
+.set-row input[type="range"] {
+  flex: 1; min-width: 0; height: 4px;
+  accent-color: var(--red);
+  cursor: pointer;
+}
+.set-bright-val {
+  font-size: 13px; color: var(--paper);
+  min-width: 38px; text-align: right;
+}
+.btn-default {
+  font-size: 13px;
+  color: var(--paper);
+  background: rgba(138,15,31,0.4);
+  border: 1px solid rgba(212,160,23,0.4);
+  border-radius: 6px;
+  padding: 7px 18px;
+  cursor: pointer;
+  letter-spacing: 0.1em;
+}
+.btn-default:hover { background: var(--red); }
+
+/* 赏析 */
+.appr-h {
+  font-size: 14px; font-weight: 500;
+  letter-spacing: 0.24em;
+  color: var(--gold);
+  margin: 18px 0 8px;
+}
+.appr-h:first-child { margin-top: 0; }
+.appr-p {
+  font-size: 14.5px;
+  line-height: 2;
+  color: var(--paper);
+  text-align: justify;
+}
+
+/* ============================================================
+   页脚 / 版本 / toast
+   ============================================================ */
+.footnote {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 5;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 7px 12px 9px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: rgba(242,231,204,0.4);
+  pointer-events: none;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+}
+.fn-note { max-width: 90vw; line-height: 1.6; text-align: center; }
+.appr-src { color: rgba(242,231,204,0.62); font-size: 13px; }
+.appr-src-h { margin-top: 22px; }
+/* 播放页：隐藏页脚小字，只保留唯一字幕 */
+#view-player:not([hidden]) ~ .footnote { display: none; }
+.version-badge {
+  color: rgba(212,160,23,0.55);
+  border: 1px solid rgba(212,160,23,0.25);
+  border-radius: 4px;
+  padding: 1px 7px;
+  font-size: 10px;
+}
+.toast {
+  position: fixed; left: 50%; bottom: 110px; z-index: 50;
+  transform: translateX(-50%);
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  color: var(--paper);
+  background: rgba(26,15,16,0.94);
+  border: 1px solid rgba(212,160,23,0.5);
+  border-radius: 8px;
+  padding: 10px 22px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+  animation: toast-in 0.3s var(--ease) both;
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+
+/* ---------- 选诗面板（按时期分区） ---------- */
+.pick-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.pick-tab {
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--paper-dim);
+  background: rgba(212,180,120,0.06);
+  border: 1px solid rgba(212,180,120,0.18);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.pick-tab:hover { border-color: rgba(233,209,160,0.5); color: var(--paper); }
+.pick-tab.active {
+  color: #fff;
+  background: linear-gradient(135deg, var(--red), var(--red-deep));
+  border-color: var(--gold);
+  box-shadow: 0 2px 10px rgba(200,16,46,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+}
+.pick-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 46vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.pick-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  color: var(--paper);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(212,180,120,0.18);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+.pick-item:hover { background: rgba(233,209,160,0.12); border-color: rgba(233,209,160,0.5); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+.pick-item.current {
+  background: rgba(233,209,160,0.12);
+  border-color: rgba(233,209,160,0.6);
+  box-shadow: inset 0 0 0 1px rgba(233,209,160,0.3);
+  position: relative;
+}
+.pick-item.current::before {
+  content: '';
+  position: absolute; left: 0; top: 8px; bottom: 8px;
+  width: 3px;
+  background: var(--gold);
+  border-radius: 0 2px 2px 0;
+  box-shadow: 0 0 8px rgba(212,160,23,0.6);
+}
+.pick-item.fav .pi-title::after { content: '藏'; font-size: 10px; color: #d4a017; margin-left: 6px; }
+.pi-title { letter-spacing: 0.08em; }
+.pi-year { font-size: 11px; color: rgba(242,231,204,0.75); letter-spacing: 0.1em; white-space: nowrap; }
+
+
+/* ---------- 移动端兜底（一期不优化，仅防错乱） ---------- */
+
+/* ============================================================
+   切诗金粉粒子
+   ============================================================ */
+.spark {
+  position: fixed;
+  width: 4px; height: 4px;
+  background: radial-gradient(circle, rgba(255,228,170,1) 0%, rgba(233,209,160,0.6) 50%, transparent 100%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 60;
+  animation: spark-fly 1.1s ease-out forwards;
+}
+@keyframes spark-fly {
+  0% { opacity: 1; transform: translate(0,0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.3); }
+}
+
+/* 切诗点睛：中心暗金粒子"绽开即收拢"（不四散，收束淡出） */
+.ink-burst {
+  position: fixed; width: 5px; height: 5px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,228,170,0.9), rgba(200,150,40,0.5) 60%, transparent 100%);
+  pointer-events: none; z-index: 60;
+  animation: ink-burst 0.9s ease-out forwards;
+}
+@keyframes ink-burst {
+  0%   { opacity: 0; transform: translate(0,0) scale(0.4); }
+  25%  { opacity: 0.9; }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.2); }
+}
+
+@media (max-width: 900px) {
+  .catalog-layout { flex-direction: column; gap: 18px; }
+  .period-nav { width: 100%; flex-direction: row; flex-wrap: wrap; justify-content: center; }
+  .poem-line { font-size: calc(var(--line-size, 52px) * 0.72); }
+}
+
+/* ============================================================
+   Phase ③ 视觉强化（2026-08-06）：背景更生动 / 进页光线扫过
+   ============================================================ */
+
+/* 极缓雾气 / 水面流动层（每分钟级，绝不抢焦点） */
+.bg-mist {
+  inset: 0; pointer-events: none; overflow: hidden;
+}
+.bg-mist::before {
+  content: ''; position: absolute; left: -20%; top: 0; width: 140%; height: 100%;
+  background: radial-gradient(ellipse 62% 42% at 50% 80%, rgba(202,182,150,0.08), transparent 70%);
+  filter: blur(20px);                 /* v1.13 降档：减模糊采样开销 */
+  animation: mist-drift 64s ease-in-out infinite alternate;
+}
+@keyframes mist-drift {
+  0%   { transform: translateX(0) translateY(0); }
+  100% { transform: translateX(10%) translateY(-2%); }
+}
+
+/* 光线扫过：进入播放页时一道柔光横扫（"推开历史大门"） */
+.view-player::after {
+  content: ''; position: absolute; inset: 0; z-index: 12; pointer-events: none;
+  background: linear-gradient(105deg, transparent 40%, rgba(255,245,214,0.10) 50%, transparent 60%);
+  transform: translateX(-130%); opacity: 0;
+}
+.view-player.enter::after { animation: player-sweep 2.0s ease-out 0.15s 1; }
+@keyframes player-sweep {
+  0%   { transform: translateX(-130%); opacity: 0; }
+  18%  { opacity: 1; }
+  100% { transform: translateX(130%);  opacity: 0; }
+}
+/* 目录页进入：极淡竖向"卷轴开合"光晕（与播放页横扫呼应，展完即淡出不残留） */
+.view-catalog.enter::after {
+  content: ''; position: absolute; inset: 0; z-index: 12; pointer-events: none;
+  background: linear-gradient(180deg, transparent 46%, rgba(255,240,205,0.07) 50%, transparent 54%);
+  transform: scaleY(0); transform-origin: top center;
+  animation: scroll-unfurl 0.6s ease-out forwards;
+}
+@keyframes scroll-unfurl {
+  0%   { transform: scaleY(0); opacity: 0; }
+  40%  { opacity: 1; }
+  100% { transform: scaleY(1); opacity: 0; }
+}
+
+/* ============================================================
+   毛体深度优化（2026-08-06）：立轴落款 / 云影 / 飞鸟 / 氛围浓度
+   守基调：革命宣传画·红光亮·庄重宏大·克制点睛
+   ============================================================ */
+
+/* --- 落款朱红藏印（左下，像装裱立轴的画家印，点睛不喧宾） --- */
+.player-sign {
+  position: absolute;
+  left: 6.5%; bottom: 13%;
+  writing-mode: vertical-rl; text-orientation: upright;
+  font-family: var(--font-mao);
+  font-size: clamp(18px, 1.5vw, 24px);
+  letter-spacing: 0.16em;
+  color: #fff7ec;
+  background: linear-gradient(160deg, rgba(200,16,46,0.92), rgba(140,15,30,0.92));
+  padding: 16px 9px; border-radius: 7px;
+  box-shadow: 0 3px 16px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(255,230,200,0.25);
+  z-index: 3; pointer-events: none;
+  opacity: 0.96;
+}
+body.font-stele .player-sign { font-family: 'Stele', 'SimSun', 'Songti SC', serif; }
+
+/* --- 大块云影掠过（2-3 层，每分钟级极缓，错速纵深，纯装饰不抢焦） --- */
+.bg-shadow { inset: 0; pointer-events: none; overflow: hidden; z-index: 1; }
+.bg-shadow .sh {
+  position: absolute; top: -10%; height: 130%;
+  background: radial-gradient(ellipse 50% 60% at 50% 50%,
+    rgba(10,4,3,0.34) 0%, rgba(10,4,3,0.16) 40%, transparent 72%);
+  filter: blur(24px);                 /* v1.13 降档 */
+  will-change: transform;
+  animation: shadow-sweep 240s linear infinite;   /* 时长被 JS 行内覆盖（180-340s） */
+}
+@keyframes shadow-sweep {
+  0%   { transform: translateX(-60vw); }
+  100% { transform: translateX(160vw); }
+}
+
+/* --- 飞鸟雁阵（剪影式，苍茫寂寥，极缓掠过，频次极低） --- */
+.bg-birds { inset: 0; pointer-events: none; overflow: hidden; z-index: 1; }
+.bg-birds .flock {
+  position: absolute; left: 0; top: 0;
+  display: flex; gap: 14px; align-items: center;
+  will-change: transform, opacity;
+  animation: bird-flight 240s linear infinite;    /* 时长被 JS 行内覆盖（200-300s） */
+}
+.bg-birds .bird {
+  width: 24px; height: 12px;
+  /* 鸥翼 "m" 形剪影：SVG mask 双弧，苍茫寂寥 */
+  background-color: rgba(18,10,8,0.5);
+  -webkit-mask: var(--bird-mask) center/contain no-repeat;
+  mask: var(--bird-mask) center/contain no-repeat;
+}
+.bg-birds .flock .bird:nth-child(2) { transform: translateY(4px) scale(0.82); }
+.bg-birds .flock .bird:nth-child(3) { transform: translateY(-3px) scale(0.7); }
+.bg-birds .flock .bird:nth-child(4) { transform: translateY(6px) scale(0.62); }
+.bg-birds .flock .bird:nth-child(5) { transform: translateY(-5px) scale(0.55); }
+@keyframes bird-flight {
+  0%   { transform: translate(-12vw, 22vh) scale(0.9); opacity: 0; }
+  8%   { opacity: 0.55; }
+  92%  { opacity: 0.55; }
+  100% { transform: translate(116vw, 44vh) scale(1.05); opacity: 0; }
+}
+
+/* --- 氛围浓度：强度驱动（body[data-atmo]） --- */
+/* 墨晕时长（C.12：800-1200ms） */
+body[data-atmo="high"] { --bloom-dur: 1.15s; }
+body[data-atmo="mid"]  { --bloom-dur: 0.95s; }
+body[data-atmo="low"]  { --bloom-dur: 0.55s; }
+body[data-atmo="off"]  { --bloom-dur: 0.001s; }
+
+/* 云影强度：关→隐藏，弱→半透，中→正常，强→更显 */
+body[data-atmo="off"] .bg-shadow { display: none; }
+body[data-atmo="low"] .bg-shadow .sh { opacity: 0.5; }
+body[data-atmo="high"] .bg-shadow .sh { opacity: 1.25; }
+
+/* 飞鸟强度：关/弱→隐藏（频次本就极低），中/强→显示 */
+body[data-atmo="off"] .bg-birds,
+body[data-atmo="low"] .bg-birds { display: none; }
+
+/* ② 新层氛围联动：关→纯净（隐藏雾/底衬/神光，色调回退中性）；弱→降透明度 */
+body[data-atmo="off"] .bg-fog,
+body[data-atmo="off"] .bg-cloudback,
+body[data-atmo="off"] .bg-godray { display: none; }
+body[data-atmo="off"] .bg-tint { background-color: rgba(0,0,0,0); }
+body[data-atmo="low"] .bg-fog { opacity: 0.5; }
+body[data-atmo="low"] .bg-cloudback { opacity: 0.6; }
+body[data-atmo="low"] .bg-godray { opacity: 0.5; }
+
+/* 低端机 / 弱硬件：去掉最吃合成的新层，保流畅（由 app.js 加 .low-end） */
+.low-end .bg-godray,
+.low-end .bg-cloudback { display: none; }
+.low-end .bg-fog { opacity: 0.6; }
+
+/* 系统"减少动态"偏好：停掉最重的背景动画，避免晕眩（铁律：可读性优先） */
+@media (prefers-reduced-motion: reduce) {
+  .bg-fog, .bg-cloudback, .bg-godray, .bg-amber::after { animation: none; }
+  .bg-kenburns { animation: none; transform: scale(1.08); }
+}
+
+/* ============================================================
+   ④ 电影分级色调：按时期浸染（2s 平滑，由 .bg-tint/.bg-amber/.bg-godray 消费变量）
+   ============================================================ */
+body[data-period='早年立志']      { --tint: rgba(70,92,122,0.36); --sun-a: rgba(180,205,225,0.20); --sun-b: rgba(90,120,150,0.14); --ray: rgba(200,222,242,0.06); }
+body[data-period='井冈山与根据地'] { --tint: rgba(98,18,22,0.42);  --sun-a: rgba(230,120,70,0.22);  --sun-b: rgba(150,40,30,0.18);  --ray: rgba(255,180,120,0.07); }
+body[data-period='长征路上']       { --tint: rgba(72,56,40,0.42);  --sun-a: rgba(200,170,120,0.18); --sun-b: rgba(120,90,60,0.16);  --ray: rgba(230,200,150,0.05); }
+body[data-period='开国前后']       { --tint: rgba(120,80,20,0.26); --sun-a: rgba(255,210,130,0.26); --sun-b: rgba(220,120,50,0.16); --ray: rgba(255,225,160,0.09); }
+body[data-period='建设年代']       { --tint: rgba(110,80,40,0.24); --sun-a: rgba(245,205,140,0.22); --sun-b: rgba(200,130,60,0.14); --ray: rgba(255,220,160,0.07); }
+/* 氛围浓度"关"：回到纯净原色调（不浸染、无神光） */
+body[data-atmo="off"] { --tint: rgba(0,0,0,0); --ray: rgba(255,235,200,0); }
+
+/* ============================================================
+   天地留白（B.8）：正文上下左右留出呼吸空间，不顶满、不憋闷
+   ============================================================ */
+.player-body { padding: 112px 4vw 116px; }
+.scroll-wrap { max-height: 86vh; }
+
+/* ============================================================
+   手机端适配（v1.14，仅 ≤640px 生效；PC 端 >640px 完全不受影响）
+   ============================================================ */
+@media (max-width: 640px) {
+  body { -webkit-tap-highlight-color: transparent; }
+
+  /* 党徽缩小（触控区不挤） */
+  .party-flag { top: 12px; left: 12px; width: 40px; height: 40px; }
+
+  /* 开场标题 */
+  .intro-title { font-size: clamp(34px, 9vw, 56px); }
+  .intro-sub { margin-top: 12px; font-size: 13px; letter-spacing: 0.4em; }
+
+  /* 播放页头部：题名 / 年份 / 落款印 收紧 */
+  .player-head { top: 14px; padding: 6px 14px; }
+  .player-title { font-size: clamp(20px, 5.2vw, 30px); letter-spacing: 0.2em; }
+  .player-byline { bottom: 52px; font-size: 12px; letter-spacing: 0.4em; }
+  .player-sign { left: 3.5%; bottom: 10%; font-size: 13px; padding: 12px 6px; border-radius: 5px; }
+
+  /* 正文留白缩小；列距由 JS 按手机给 8px */
+  .player-body { padding: 56px 3vw 60px; }
+  .scroll-wrap { max-width: 100vw; max-height: 86vh;
+    display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .scroll-wrap .stanza-row { display: flex; justify-content: center; }
+  .line-block { padding: 9px 4px; }
+  .stanza-row { margin: 9px 0; }
+
+  /* 字幕 */
+  .player-subtitle { bottom: 72px; font-size: 14px; letter-spacing: 0.2em; }
+
+  /* 控制条：触控友好尺寸 */
+  .controlbar { bottom: 16px; padding: 8px 10px; gap: 4px; }
+  .cb-btn { width: 46px; height: 46px; }
+  .cb-btn svg { width: 20px; height: 20px; }
+  .cb-main { width: 58px; height: 58px; }
+
+  /* 面板：全宽抽屉 + 触控行高 */
+  .panel-card { width: 100vw; max-height: 84vh; border-radius: 14px 14px 0 0; }
+  .panel-body { padding: 14px 16px 28px; }
+  .set-row { padding: 12px 0; }
+  .set-seg button { padding: 9px 13px; font-size: 13px; }
+  .set-row select { max-width: 150px; }
+
+  /* 目录页 */
+  .view-catalog { padding: 7vh 3vw 9vh; }
+  .catalog-head { padding: 16px 14px 10px; }
+  .catalog-heading { font-size: 24px; }
+  .poem-card { padding: 12px 14px 12px 22px; gap: 12px; }
+  .poem-card .pc-title { font-size: 18px; }
+  .poem-card .pc-preview { font-size: 12px; }
+  .poem-card .pc-year { font-size: 11px; }
+  .period-item { padding: 8px 10px; font-size: 12px; }
+  .period-item .period-count { font-size: 10px; }
+  .btn-cat { padding: 6px 12px; font-size: 12px; }
+
+  /* 选诗面板 */
+  .pick-tab { padding: 8px 12px; font-size: 13px; }
+  .pick-item { padding: 12px 14px; }
+  .pi-title { font-size: 16px; }
+  .pi-year { font-size: 11px; }
+
+  /* 天头地脚细金线收紧 */
+  body::before { top: 12px; }
+  body::after { bottom: 12px; }
+
+  /* Toast */
+  .toast { font-size: 13px; padding: 10px 16px; }
+}
