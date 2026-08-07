@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>毛泽东诗词 · 沉浸式鉴赏工作台</title>
+  <link rel="stylesheet" href="css/style.css?v=1.14.3">
+<!-- 字体预加载：仅预加载默认毛体；碑刻(stele.otf)改为切到"碑刻"模式时按需加载，避免进站强下 24MB -->
+<link rel="preload" href="assets/fonts/maoshanzheng.ttf" as="font" type="font/ttf" crossorigin>
+</head>
+<body>
+
+<!-- ===== 全局背景层：血色江山 · 纯图铺满 ===== -->
+<div class="bg-stage" aria-hidden="true">
+  <div class="bg-image"></div>
+  <div class="bg-amber"></div>
+  <div class="bg-clouds" id="bg-clouds"></div>
+  <div class="bg-dust" id="dust-layer"></div>
+  <div class="bg-mist"></div>
+  <div class="bg-noise"></div>
+  <div class="bg-vignette"></div>
+</div>
+
+<!-- ===== 画卷裱框（左右竖金线） ===== -->
+<div class="frame-v frame-left" aria-hidden="true"></div>
+<div class="frame-v frame-right" aria-hidden="true"></div>
+
+<!-- ===== 党徽（左上角 · 官方标准版） ===== -->
+<div class="party-flag" aria-hidden="true">
+  <img src="assets/img/party_emblem.png" alt="党徽">
+</div>
+
+<!-- ===== 开场视图：黑场劈字 ===== -->
+<section id="view-intro" class="view view-intro" aria-label="开场">
+  <div class="intro-inner">
+    <h1 class="intro-title" id="intro-title">江山如此多娇</h1>
+    <p class="intro-sub" id="intro-sub"></p>
+  </div>
+</section>
+
+<!-- ===== 播放视图：主场景 ===== -->
+<section id="view-player" class="view view-player" aria-label="播放页" hidden>
+  <header class="player-head">
+    <h2 class="player-title" id="player-title"></h2>
+    <span class="player-seal" id="player-seal">藏</span>
+  </header>
+  <main class="player-body" id="player-body"></main>
+  <div class="player-byline" id="player-byline"></div>
+  <div class="player-sign" id="player-sign" aria-hidden="true">毛泽东</div>
+  <footer class="player-subtitle" id="player-subtitle"></footer>
+</section>
+
+<!-- ===== 目录视图 ===== -->
+<section id="view-catalog" class="view view-catalog" aria-label="目录" hidden>
+  <header class="catalog-head">
+    <h2 class="catalog-heading">毛泽东诗词</h2>
+    <div class="catalog-actions">
+      <button class="btn-cat" id="btn-fav-filter" type="button">已藏</button>
+      <button class="btn-cat" id="btn-back-player" type="button">返回</button>
+    </div>
+  </header>
+  <div class="catalog-layout">
+    <nav class="period-nav" id="period-nav" aria-label="时期导航"></nav>
+    <main class="poem-list" id="poem-list"></main>
+  </div>
+</section>
+
+<!-- ===== 时间进度条 ===== -->
+<!-- 撤掉进度条（用户要求） -->
+
+<!-- ===== 沉浸控制条 ===== -->
+<div id="controlbar" class="controlbar" role="toolbar" aria-label="播放控制">
+  <button class="cb-btn" id="cb-prev" title="上一首" aria-label="上一首">
+    <svg viewBox="0 0 24 24"><path d="M19 20L9 12l10-8v16zM5 4v16"/></svg>
+  </button>
+  <button class="cb-btn cb-main" id="cb-play" title="播放/暂停" aria-label="播放/暂停">
+    <svg class="ic-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    <svg class="ic-pause" viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+  </button>
+  <button class="cb-btn" id="cb-next" title="下一首" aria-label="下一首">
+    <svg viewBox="0 0 24 24"><path d="M5 4l10 8-10 8V4zM19 4v16"/></svg>
+  </button>
+  <span class="cb-divider"></span>
+  <button class="cb-btn" id="cb-pick" title="选诗" aria-label="选诗">
+    <svg viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg>
+  </button>
+  <button class="cb-btn" id="cb-settings" title="设置" aria-label="设置">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </button>
+  <button class="cb-btn" id="cb-appreciation" title="背景与赏析" aria-label="背景与赏析">
+    <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+  </button>
+  <button class="cb-btn cb-fav" id="cb-fav" title="收藏" aria-label="收藏">藏</button>
+</div>
+
+<!-- ===== 设置面板 ===== -->
+<div id="panel-settings" class="panel" role="dialog" aria-modal="true" aria-label="设置" hidden>
+  <div class="panel-card">
+    <header class="panel-head">
+      <h3>设置</h3>
+      <button class="panel-close" data-close="panel-settings" aria-label="关闭">✕</button>
+    </header>
+    <div class="panel-body">
+      <div class="set-row">
+        <span class="set-label">字体</span>
+        <div class="set-seg" id="set-font" data-key="font">
+          <button data-val="mao">毛体</button>
+          <button data-val="stele">碑刻</button>
+        </div>
+      </div>
+      <div class="set-row">
+        <span class="set-label">字号</span>
+        <div class="set-seg" id="set-size" data-key="font_size">
+          <button data-val="m">适中</button>
+          <button data-val="l">大</button>
+        </div>
+      </div>
+      <div class="set-row">
+        <span class="set-label">氛围浓度</span>
+        <div class="set-seg" id="set-atmo" data-key="atmosphere">
+          <button data-val="high">强</button>
+          <button data-val="mid">中</button>
+          <button data-val="low">弱</button>
+          <button data-val="off">关</button>
+        </div>
+      </div>
+      <div class="set-row">
+        <span class="set-label">文字亮度</span>
+        <input type="range" id="set-bright" min="0.4" max="1.5" step="0.05" value="0.95">
+        <span class="set-bright-val" id="set-bright-val">95%</span>
+      </div>
+      <div class="set-row">
+        <span class="set-label">BGM</span>
+        <select id="set-bgm" data-key="bgm_id"></select>
+        <label class="set-switch"><input type="checkbox" id="set-bgmon" data-key="bgm_on"><span>开</span></label>
+      </div>
+      <div class="set-row">
+        <span class="set-label">音乐音量</span>
+        <input type="range" id="set-bgmvol" min="0" max="100" step="5" value="30">
+        <span class="set-bright-val" id="set-bgmvol-val">30%</span>
+      </div>
+      <div class="set-row">
+        <span class="set-label">字幕</span>
+        <label class="set-switch"><input type="checkbox" id="set-subtitle" data-key="subtitle" checked><span>开</span></label>
+      </div>
+      <div class="set-row">
+        <span class="set-label">仪式音</span>
+        <label class="set-switch"><input type="checkbox" id="set-ritual" data-key="ritual_sound" checked><span>开</span></label>
+      </div>
+      <div class="set-row">
+        <span class="set-label">点击音</span>
+        <label class="set-switch"><input type="checkbox" id="set-click" data-key="click_sound" checked><span>开</span></label>
+      </div>
+      <div class="set-row">
+        <span class="set-label"></span>
+        <button class="btn-default" id="btn-reset">还原默认</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 选诗面板（按时期分区） ===== -->
+<div id="panel-pick" class="panel" role="dialog" aria-modal="true" aria-label="选诗" hidden>
+  <div class="panel-card">
+    <header class="panel-head">
+      <h3>选诗</h3>
+      <button class="panel-close" data-close="panel-pick" aria-label="关闭">✕</button>
+    </header>
+    <div class="panel-body">
+      <div class="pick-nav" id="pick-nav"></div>
+      <div class="pick-list" id="pick-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 背景与赏析面板 ===== -->
+<div id="panel-appreciation" class="panel" role="dialog" aria-modal="true" aria-label="背景与赏析" hidden>
+  <div class="panel-card">
+    <header class="panel-head">
+      <h3 id="appr-title">背景与赏析</h3>
+      <button class="panel-close" data-close="panel-appreciation" aria-label="关闭">✕</button>
+    </header>
+    <div class="panel-body appr-body">
+      <h4 class="appr-h">创作背景</h4>
+      <p class="appr-p" id="appr-background"></p>
+      <h4 class="appr-h">白话赏析</h4>
+      <p class="appr-p" id="appr-appreciation"></p>
+      <h4 class="appr-h appr-src-h">音频来源</h4>
+      <p class="appr-p appr-src" id="appr-source"></p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 版本角标 / 免责声明 ===== -->
+<div class="footnote">
+  <span class="fn-note">诗词全文与朗诵音频均来自公开渠道（央视/央广等），版权归原权利方所有；本站仅作纪念、教育与学习交流之用，非商业用途。如涉侵权，请告知以便及时删除。</span>
+  <span class="version-badge" id="version-badge">v0.1.0</span>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<!-- 枯笔/飞白质感滤镜（毛体正文叠加）：在高噪点处"镂空"出白色飞白，阈值偏高故极克制 -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="ink-rough" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018 0.32" numOctaves="2" seed="9" result="n"/>
+      <feColorMatrix in="n" type="matrix"
+        values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1.5 -0.62" result="m"/>
+      <feComposite in="SourceGraphic" in2="m" operator="out" result="rough"/>
+    </filter>
+  </defs>
+</svg>
+
+<script src="js/data.js?v=1.14.3"></script>
+<script src="js/audio.js?v=1.14.3"></script>
+<script src="js/player.js?v=1.14.3"></script>
+<script src="js/catalog.js?v=1.14.3"></script>
+<script src="js/app.js?v=1.14.3"></script>
+</body>
+</html>
