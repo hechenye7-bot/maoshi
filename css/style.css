@@ -804,7 +804,7 @@ body.font-stele .line-text {
 .mao-portrait {
   position: fixed;
   top: 22px; right: 22px;
-  width: 64px; height: 64px;        /* 与党徽一致比例 */
+  width: 92px; height: 92px;        /* 比党徽略大，更醒目庄重 */
   z-index: 8;
   opacity: 0;                       /* 默认隐藏，仅随朗读画面淡入出现 */
   pointer-events: none;
@@ -1388,7 +1388,7 @@ body[data-atmo="off"] { --tint: rgba(0,0,0,0); --ray: rgba(255,235,200,0); }
 
   /* 党徽缩小（触控区不挤） */
   .party-flag { top: 12px; left: 12px; width: 40px; height: 40px; }
-  .mao-portrait { top: 12px; right: 12px; width: 84px; height: 84px; border-radius: 10px; }
+  .mao-portrait { top: 12px; right: 12px; width: 60px; height: 60px; border-radius: 10px; }
 
   /* 开场标题 */
   .intro-title { font-size: clamp(34px, 9vw, 56px); }
