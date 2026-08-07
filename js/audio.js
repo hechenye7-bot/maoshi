@@ -37,9 +37,9 @@ const PlayerAudio = {
       if (!Ctx) return;
       const ctx = new Ctx();
       const src = ctx.createMediaElementSource(this.el);
-      const pre = ctx.createGain(); pre.gain.value = 2.5;        // 整体放大 ~+8dB
+      const pre = ctx.createGain(); pre.gain.value = 4.5;        // 整体放大 ~+13dB（源电平均值约 -23dB，明显拉响）
       const lim = ctx.createDynamicsCompressor();               // 限幅：峰值不破音
-      lim.threshold.value = -2; lim.knee.value = 0;
+      lim.threshold.value = -1; lim.knee.value = 0;
       lim.ratio.value = 20; lim.attack.value = 0.003; lim.release.value = 0.1;
       src.connect(pre); pre.connect(lim); lim.connect(ctx.destination);
       this.voiceCtx = ctx;
