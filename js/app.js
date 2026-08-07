@@ -3,7 +3,7 @@
    ============================================================ */
 'use strict';
 
-const VERSION = '1.15.6';
+const VERSION = '1.15.7';
 
 /* ---------- Toast ---------- */
 const Toast = {
@@ -47,6 +47,7 @@ const UI = {
 
   /* 开场 → 播放 */
   startIntro() {
+    this.views.intro.classList.remove('exit');   /* 清除上次残留的退场态（保险） */
     this.showView('intro');
     const titleEl = document.getElementById('intro-title');
     const subEl = document.getElementById('intro-sub');
@@ -61,7 +62,10 @@ const UI = {
 
     /* 磬声与"字炸开爆点"同步（字爆点≈0.6s），不再固定 1500ms */
     setTimeout(() => { Ritual.qing(0.9); }, 600);
-    /* 总时长收紧到 ≤2.5s：黑场→劈字→江山渐显→自动开诵（2450ms 转播放页即开诵） */
+    /* 开场收束：转入播放页前先让标题/江山整体渐隐（不硬切）。
+       1900ms 起淡出 0.55s ≈ 2450ms 完成，恰与转场衔接；showView 后退场态维持 opacity:0 再 hidden 无跳变 */
+    setTimeout(() => { this.views.intro.classList.add('exit'); }, 1900);
+    /* 总时长收紧到 ≤2.5s：黑场→劈字→江山渐显→渐隐→自动开诵（2450ms 转播放页即开诵） */
     setTimeout(() => {
       this.showPlayer({ poemId: poem ? poem.id : (AppState.poems[0] || null), fromIntro: true });
     }, 2450);
