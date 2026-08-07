@@ -3,7 +3,7 @@
    ============================================================ */
 'use strict';
 
-const VERSION = '1.15.9';
+const VERSION = '1.15.10';
 
 /* ---------- Toast ---------- */
 const Toast = {
@@ -650,6 +650,13 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
       if (k.indexOf('maoshi-wb-') === 0 && k !== 'maoshi-wb-' + VERSION) caches.delete(k).catch(() => {});
     })).catch(() => {});
   }
+  /* SW 装好新版本后通过 postMessage 通知本页；若本页仍是旧 JS（version 不同）则自动刷新，
+     加载最新脚本——解决「改了却看不到」反复发生的根因（clients.claim 只换 SW 不重跑旧脚本） */
+  navigator.serviceWorker.addEventListener('message', e => {
+    if (e.data && e.data.type === 'sw-updated' && e.data.version !== VERSION) {
+      location.reload(true);
+    }
+  });
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js?v=' + VERSION)
       .then(reg => reg.update().catch(() => {}))

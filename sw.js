@@ -3,7 +3,7 @@
    ============================================================ */
 'use strict';
 
-const VERSION = '1.15.9';
+const VERSION = '1.15.10';
 const CACHE = 'maoshi-wb-' + VERSION;
 const CORE = [
   './',
@@ -27,7 +27,12 @@ self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
+    ).then(() => self.clients.claim()).then(() => {
+      /* 通知所有页面：SW 已更新到新版本，页面若仍是旧 JS 则自动刷新（根治「改了看不到」） */
+      return self.clients.matchAll({ includeUncontrolled: true }).then(cls =>
+        cls.forEach(c => { try { c.postMessage({ type: 'sw-updated', version: VERSION }); } catch (e) {} })
+      );
+    })
   );
 });
 
