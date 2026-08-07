@@ -3,7 +3,7 @@
    ============================================================ */
 'use strict';
 
-const VERSION = '1.15.11';
+const VERSION = '1.15.12';
 
 /* ---------- Toast ---------- */
 const Toast = {
@@ -361,7 +361,7 @@ const SettingsUI = {
     document.getElementById('btn-reset').addEventListener('click', () => {
       AppState.settings = {
         font: 'stele', font_size: 'l', bright: 0.4, atmosphere: 'off',
-        bgm_id: null, bgm_on: true, bgm_volume: 0.4,
+        bgm_id: null, bgm_on: true, bgm_volume: 0.3,
         subtitle: false, ritual_sound: true, click_sound: true
       };
       AppState.saveSettings();
@@ -372,8 +372,8 @@ const SettingsUI = {
       document.getElementById('set-bright').value = 0.4;
       document.getElementById('set-bright-val').textContent = '40%';
       this.applyBright(0.4);
-      document.getElementById('set-bgmvol').value = 40;
-      document.getElementById('set-bgmvol-val').textContent = '40%';
+      document.getElementById('set-bgmvol').value = 30;
+      document.getElementById('set-bgmvol-val').textContent = '30%';
       PlayerAudio.refreshBgmVolume();
       this.syncFontSeg();
       this.syncAtmoSeg();
@@ -726,4 +726,9 @@ function armAutoplayFallback() {
   }
   /* 直接开场：浏览器允许时自动朗诵+轮播；被拦截时由 armAutoplayFallback 手势兜底 */
   UI.startIntro();
+
+  /* 晚期版本校验：若已加载脚本版本与页面期望版本不符（资源被错配，极少见），强制刷新兜底 */
+  try {
+    if (window.__EXPECT_VER && VERSION !== window.__EXPECT_VER) location.reload(true);
+  } catch (e) {}
 })();

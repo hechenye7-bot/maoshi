@@ -3,8 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- 早期版本自校验：检测到本地版本落后于页面则强制刷新一次，根治 SW/HTTP 缓存导致"改了看不到" -->
+<script>
+(function(){
+  var VER = '1.15.12';
+  window.__EXPECT_VER = VER;
+  try {
+    var k = 'maoshi:ver';
+    var s = localStorage.getItem(k);
+    if (s && s !== VER) {
+      localStorage.setItem(k, VER);
+      location.replace(location.pathname + '?v=' + VER + (location.hash || ''));
+      return;
+    }
+    localStorage.setItem(k, VER);
+  } catch(e){}
+})();
+</script>
 <title>毛泽东诗词 · 沉浸式鉴赏工作台</title>
-  <link rel="stylesheet" href="css/style.css?v=1.15.11">
+  <link rel="stylesheet" href="css/style.css?v=1.15.12">
 <!-- 字体预加载：仅预加载默认毛体；碑刻(stele.otf)改为切到"碑刻"模式时按需加载，避免进站强下 24MB -->
 <link rel="preload" href="assets/fonts/maoshanzheng.ttf" as="font" type="font/ttf" crossorigin>
 </head>
@@ -143,8 +160,8 @@
       </div>
       <div class="set-row">
         <span class="set-label">音乐音量</span>
-        <input type="range" id="set-bgmvol" min="0" max="100" step="5" value="40">
-        <span class="set-bright-val" id="set-bgmvol-val">40%</span>
+        <input type="range" id="set-bgmvol" min="0" max="100" step="5" value="30">
+        <span class="set-bright-val" id="set-bgmvol-val">30%</span>
       </div>
       <div class="set-row">
         <span class="set-label">字幕</span>
@@ -218,10 +235,10 @@
   </defs>
 </svg>
 
-<script src="js/data.js?v=1.15.11"></script>
-<script src="js/audio.js?v=1.15.11"></script>
-<script src="js/player.js?v=1.15.11"></script>
-<script src="js/catalog.js?v=1.15.11"></script>
-<script src="js/app.js?v=1.15.11"></script>
+<script src="js/data.js?v=1.15.12"></script>
+<script src="js/audio.js?v=1.15.12"></script>
+<script src="js/player.js?v=1.15.12"></script>
+<script src="js/catalog.js?v=1.15.12"></script>
+<script src="js/app.js?v=1.15.12"></script>
 </body>
 </html>
