@@ -3,7 +3,7 @@
    ============================================================ */
 'use strict';
 
-const VERSION = '1.15.13';
+const VERSION = '1.15.18';
 
 /* ---------- Toast ---------- */
 const Toast = {
@@ -42,6 +42,9 @@ const UI = {
       setTimeout(() => { old.hidden = true; }, 380);
     }
     this.currentView = name;
+    /* 右上角图章：仅朗读画面（player）显示，随朗读画面柔和浮现 */
+    const corner = document.querySelector('.mao-portrait');
+    if (corner) corner.classList.toggle('show', name === 'player');
     if (name !== 'intro') this.showControlbar();
   },
 

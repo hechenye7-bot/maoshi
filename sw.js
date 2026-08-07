@@ -3,7 +3,7 @@
    ============================================================ */
 'use strict';
 
-const VERSION = '1.15.13';
+const VERSION = '1.15.18';
 const CACHE = 'maoshi-wb-' + VERSION;
 const CORE = [
   './',
