@@ -3,7 +3,7 @@
    ============================================================ */
 'use strict';
 
-const VERSION = '1.15.7';
+const VERSION = '1.15.8';
 
 /* ---------- Toast ---------- */
 const Toast = {
@@ -63,8 +63,12 @@ const UI = {
     /* 磬声与"字炸开爆点"同步（字爆点≈0.6s），不再固定 1500ms */
     setTimeout(() => { Ritual.qing(0.9); }, 600);
     /* 开场收束：转入播放页前先让标题/江山整体渐隐（不硬切）。
-       1900ms 起淡出 0.55s ≈ 2450ms 完成，恰与转场衔接；showView 后退场态维持 opacity:0 再 hidden 无跳变 */
-    setTimeout(() => { this.views.intro.classList.add('exit'); }, 1900);
+       先移除 enter（其 animation fill-mode:both 会把 opacity 锁在 1，挡住渐隐），再触发 exit 动画。
+       1850ms 起淡出 0.6s ≈ 2450ms 完成，恰与转场衔接；showView 后退场态维持 opacity:0 再 hidden 无跳变 */
+    setTimeout(() => {
+      this.views.intro.classList.remove('enter');
+      this.views.intro.classList.add('exit');
+    }, 1850);
     /* 总时长收紧到 ≤2.5s：黑场→劈字→江山渐显→渐隐→自动开诵（2450ms 转播放页即开诵） */
     setTimeout(() => {
       this.showPlayer({ poemId: poem ? poem.id : (AppState.poems[0] || null), fromIntro: true });
