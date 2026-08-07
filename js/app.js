@@ -3,7 +3,7 @@
    ============================================================ */
 'use strict';
 
-const VERSION = '1.15.3';
+const VERSION = '1.15.4';
 
 /* ---------- Toast ---------- */
 const Toast = {
@@ -43,6 +43,13 @@ const UI = {
     }
     this.currentView = name;
     if (name !== 'intro') this.showControlbar();
+  },
+
+  /* 开启门：首屏展示"轻触开启"，不在无手势时强行放朗诵（浏览器自动播放策略会拦截） */
+  showStart() {
+    const sv = document.getElementById('view-start');
+    if (sv) sv.hidden = false;
+    this.currentView = 'start';
   },
 
   /* 开场 → 播放 */
@@ -264,7 +271,7 @@ const SettingsUI = {
     brightVal.textContent = Math.round(s.bright * 100) + '%';
     this.applyBright(s.bright);
 
-    /* 音乐音量（BGM 大小，默认 30%，拖动即生效） */
+    /* 音乐音量（BGM 大小，默认 20%，拖动即生效） */
     const bv = (s.bgm_volume == null ? 0.5 : s.bgm_volume);
     const bgmVolEl = document.getElementById('set-bgmvol');
     const bgmVolVal = document.getElementById('set-bgmvol-val');
@@ -352,7 +359,7 @@ const SettingsUI = {
     document.getElementById('btn-reset').addEventListener('click', () => {
       AppState.settings = {
         font: 'stele', font_size: 'l', bright: 0.4, atmosphere: 'off',
-        bgm_id: null, bgm_on: true, bgm_volume: 0.3,
+        bgm_id: null, bgm_on: true, bgm_volume: 0.2,
         subtitle: false, ritual_sound: true, click_sound: true
       };
       AppState.saveSettings();
@@ -363,8 +370,8 @@ const SettingsUI = {
       document.getElementById('set-bright').value = 0.4;
       document.getElementById('set-bright-val').textContent = '40%';
       this.applyBright(0.4);
-      document.getElementById('set-bgmvol').value = 30;
-      document.getElementById('set-bgmvol-val').textContent = '30%';
+      document.getElementById('set-bgmvol').value = 20;
+      document.getElementById('set-bgmvol-val').textContent = '20%';
       PlayerAudio.refreshBgmVolume();
       this.syncFontSeg();
       this.syncAtmoSeg();
@@ -678,6 +685,18 @@ function armAutoplayFallback() {
   window.addEventListener('keydown', onGesture);
 }
 
+/* ---------- 开启体验：在用户手势内解锁音频上下文，再进入开场（自动播放 + 轮播的前提） ---------- */
+function startExperience() {
+  if (startExperience._done) return;
+  startExperience._done = true;
+  /* 必须在用户手势内 resume 音频上下文，否则浏览器自动播放策略会拦截朗诵/磬声 */
+  try { Ritual.ensure(); } catch (e) {}
+  try { if (PlayerAudio.voiceCtx && PlayerAudio.voiceCtx.state !== 'running') PlayerAudio.voiceCtx.resume(); } catch (e) {}
+  const sv = document.getElementById('view-start');
+  if (sv) sv.hidden = true;
+  UI.startIntro();
+}
+
 /* ---------- 启动 ---------- */
 (async function boot() {
   AppState.load();
@@ -710,5 +729,14 @@ function armAutoplayFallback() {
       return;
     }
   }
-  UI.startIntro();
+  /* 首屏开启门：用户轻触一次即在手势内解锁音频，之后全程自动播放 + 自动轮播 */
+  const startView = document.getElementById('view-start');
+  const startBtn = document.getElementById('start-enter');
+  const begin = () => startExperience();
+  if (startBtn) startBtn.addEventListener('click', e => { e.stopPropagation(); begin(); });
+  if (startView) {
+    startView.addEventListener('click', begin);
+    startView.addEventListener('keydown', e => { if (e.code === 'Space' || e.code === 'Enter') begin(); });
+  }
+  UI.showStart();
 })();
