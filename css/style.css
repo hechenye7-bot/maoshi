@@ -15,6 +15,12 @@
   font-display: swap;
 }
 
+/* ---------- 时期色调变量（④ 电影分级，@property 注册以便 2s 平滑过渡） ---------- */
+@property --sun-a { syntax: '<color>'; inherits: true; initial-value: rgba(244,196,120,0.22); }
+@property --sun-b { syntax: '<color>'; inherits: true; initial-value: rgba(190,80,40,0.14); }
+@property --tint  { syntax: '<color>'; inherits: true; initial-value: rgba(0,0,0,0); }
+@property --ray   { syntax: '<color>'; inherits: true; initial-value: rgba(255,235,200,0.06); }
+
 /* ---------- 变量 ---------- */
 :root {
   --red: #C8102E;          /* 革命红 */
@@ -78,22 +84,36 @@ body::after { bottom: 28px; }
   inset: 0;
   background: url('../assets/img/jsh.jpg') center center / cover no-repeat;
   transform-origin: 52% 46%;
-  /* 极慢推近（开场"推开历史大门" + 全程每分钟级极缓） */
-  animation: bg-kenburns 30s ease-in-out infinite alternate;
+  /* 更慢更远的航拍推近 + 极轻水平往复（220s 一周期，像镜头缓缓逼近） */
+  animation: bg-kenburns 220s ease-in-out infinite alternate;
 }
 @keyframes bg-kenburns {
-  from { transform: scale(1.04); }
-  to   { transform: scale(1.13); }
+  from { transform: scale(1.02) translateX(-2.2%); }
+  to   { transform: scale(1.18) translateX(2.2%); }
 }
 
 /* 2. 云霞暖光（左上余晖 · 缓慢呼吸 + 极淡升降，作"残阳"光晕脉动） */
 .bg-amber {
   inset: 0;
   background:
-    radial-gradient(ellipse 44% 32% at 24% 20%, rgba(244,196,120,0.22), transparent 72%),
-    radial-gradient(ellipse 38% 28% at 82% 74%, rgba(190,80,40,0.14), transparent 72%);
+    radial-gradient(ellipse 44% 32% at 24% 20%, var(--sun-a, rgba(244,196,120,0.22)), transparent 72%),
+    radial-gradient(ellipse 38% 28% at 82% 74%, var(--sun-b, rgba(190,80,40,0.14)), transparent 72%);
+  /* 残阳颜色随时期变量平滑过渡（④ 电影分级色调） */
+  transition: --sun-a 2s ease, --sun-b 2s ease;
   animation: amber-breathe 16s ease-in-out infinite alternate,
              amber-float 26s ease-in-out infinite alternate;
+}
+/* 残阳第二层：更淡更大，光斑随时间极缓漂移（"夕阳在移动"） */
+.bg-amber::after {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 44% at 26% 22%, var(--sun-b, rgba(190,80,40,0.14)), transparent 74%);
+  filter: blur(6px);
+  opacity: 0.9;
+  animation: sun-drift 60s ease-in-out infinite alternate;
+}
+@keyframes sun-drift {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(4%, 3%); }
 }
 @keyframes amber-breathe {
   from { opacity: 0.62; }
@@ -155,6 +175,52 @@ body::after { bottom: 28px; }
     linear-gradient(180deg, rgba(8,4,3,0.18) 0%, transparent 14%, transparent 86%, rgba(8,4,3,0.28) 100%);
 }
 
+/* ② 主色调浸染层（④ 上色）：颜色由 --tint 变量驱动，2s 平滑过渡，multiply 融进江山 */
+.bg-tint {
+  inset: 0; pointer-events: none;
+  background-color: var(--tint, rgba(0,0,0,0));
+  transition: background-color 2s ease;
+  mix-blend-mode: multiply;
+}
+/* ② 超远山影/霞光底衬：极淡极大极慢，制造层次纵深 */
+.bg-cloudback {
+  inset: 0; pointer-events: none; overflow: hidden;
+  background:
+    radial-gradient(ellipse 120% 70% at 50% 118%, rgba(20,10,8,0.5), transparent 70%),
+    radial-gradient(ellipse 92% 52% at 30% -8%, rgba(150,90,50,0.10), transparent 72%);
+  transform: scale(1.15);
+  filter: blur(12px);
+  animation: cloudback-drift 240s ease-in-out infinite alternate;
+}
+@keyframes cloudback-drift {
+  from { transform: scale(1.12) translateX(-2%); }
+  to   { transform: scale(1.20) translateX(2%); }
+}
+/* ② 山脚淡雾：底部极淡流动水汽，左右极缓漂移、低透明度、模糊 */
+.bg-fog {
+  inset: 0; pointer-events: none; overflow: hidden;
+  background: radial-gradient(ellipse 84% 30% at 50% 102%, rgba(214,198,170,0.12), transparent 72%);
+  filter: blur(22px);
+  animation: fog-drift 90s ease-in-out infinite alternate;
+}
+@keyframes fog-drift {
+  from { transform: translateX(-4%) translateY(0); }
+  to   { transform: translateX(6%) translateY(-1.5%); }
+}
+/* ④ 体积光（神光）：极淡光柱左右极缓摆动，颜色由 --ray 驱动，2s 过渡 */
+.bg-godray {
+  inset: 0; pointer-events: none; overflow: hidden;
+  background: linear-gradient(102deg, transparent 44%, var(--ray, rgba(255,235,200,0.06)) 50%, transparent 56%);
+  filter: blur(30px);
+  opacity: 0.9;
+  animation: godray-sway 70s ease-in-out infinite alternate;
+  transition: --ray 2s ease;
+}
+@keyframes godray-sway {
+  from { transform: translateX(-6%) rotate(-0.6deg); }
+  to   { transform: translateX(6%) rotate(0.6deg); }
+}
+
 /* ============================================================
    视图通用：显式高度撑满视口（铁律 4）
    ============================================================ */
@@ -178,9 +244,9 @@ body::after { bottom: 28px; }
    ============================================================ */
 .view-intro {
   align-items: center; justify-content: center;
-  background: #000;
+  background: transparent;       /* 黑场交由 .intro-veil 控制，便于"露出江山"渐显 */
 }
-.intro-inner { text-align: center; }
+.intro-inner { text-align: center; position: relative; z-index: 2; }
 .intro-title {
   font-family: var(--font-mao);
   font-size: clamp(56px, 8vw, 108px);
@@ -190,13 +256,36 @@ body::after { bottom: 28px; }
   position: relative;
   opacity: 0;
   text-shadow: 0 0 18px rgba(200,16,46,0.5), 0 2px 6px rgba(0,0,0,0.8);
-  /* 劈字 + 墨晕爆裂（双层动画叠加） */
+  /* 劈字炸出 + 墨团爆裂 + 金边闪（三层动画叠加，爆点≈0.6s 与磬声同步） */
   animation: intro-split 1.2s var(--ease) 0.55s forwards,
-             intro-ink 1.0s ease-out 0.5s forwards;
+             intro-ink 1.0s ease-out 0.5s forwards,
+             intro-gold 1.4s ease-out 0.9s forwards;
+}
+/* 墨团：字爆出前先聚成一团浓墨，爆点瞬间膨胀炸开消散（"从墨中炸出成形"） */
+.intro-title::before {
+  content: ''; position: absolute; inset: -34%; z-index: -1;
+  background: radial-gradient(circle at 50% 50%,
+    rgba(6,3,2,0.97) 0%, rgba(6,3,2,0.78) 38%, rgba(6,3,2,0.0) 72%);
+  filter: blur(7px);
+  opacity: 1; transform: scale(1.45);
+  animation: intro-inkball 1.35s ease-out 0.45s forwards;
+  pointer-events: none;
+}
+@keyframes intro-inkball {
+  0%   { opacity: 1; transform: scale(1.5); filter: blur(2px); }
+  34%  { opacity: 1; transform: scale(1.72); filter: blur(0); }   /* 墨团聚合膨胀 */
+  60%  { opacity: 0.92; transform: scale(2.15); filter: blur(15px); } /* 炸开 */
+  100% { opacity: 0; transform: scale(2.6); filter: blur(26px); }
+}
+/* 金边描边：字成形后一道暗金描边闪过（"金丝裂纹沿字迹游走"的收束感） */
+@keyframes intro-gold {
+  0%, 42% { text-shadow: 0 0 18px rgba(200,16,46,0.5), 0 2px 6px rgba(0,0,0,0.85); }
+  56%     { text-shadow: 0 0 28px rgba(244,196,120,0.95), 0 0 11px rgba(255,240,200,0.85), 0 2px 6px rgba(0,0,0,0.85); }
+  100%    { text-shadow: 0 0 18px rgba(200,16,46,0.5), 0 2px 6px rgba(0,0,0,0.85); }
 }
 @keyframes intro-split {
-  0% { opacity: 0; transform: scale(1.6) translateY(6px); filter: blur(6px); }
-  55% { opacity: 1; transform: scale(0.96) translateY(0); filter: blur(0); }
+  0%   { opacity: 0; transform: scale(1.95) translateY(8px); filter: blur(13px); }
+  42%  { opacity: 1; transform: scale(0.93) translateY(0); filter: blur(1.2px); }
   100% { opacity: 1; transform: scale(1); filter: blur(0); }
 }
 /* 墨晕爆裂：劈字瞬间一圈墨色由内向外炸开再收（"推开历史大门"的冲击） */
@@ -229,6 +318,30 @@ body::after { bottom: 28px; }
   animation: fade-in 0.8s var(--ease) 1.9s forwards;
 }
 @keyframes fade-in { to { opacity: 1; } }
+
+/* 黑场蒙版：前 ~1.4s 全黑，字炸开后于 ~1.4→2.3s 渐隐，露出背后"缓缓推近的血色江山" */
+.intro-veil {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: #000;
+  animation: intro-veil 2.5s ease forwards;
+}
+@keyframes intro-veil {
+  0%, 56% { opacity: 1; }
+  92%     { opacity: 0; }
+  100%    { opacity: 0; }
+}
+/* 金光掠过：露江山瞬间的"镜头拉开"光带（自左向右） */
+.intro-ray {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(105deg, transparent 38%, rgba(255,238,200,0.16) 50%, transparent 62%);
+  transform: translateX(-130%); opacity: 0; mix-blend-mode: screen;
+  animation: intro-ray 1.1s ease-out 1.35s forwards;
+}
+@keyframes intro-ray {
+  0%   { transform: translateX(-130%); opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: translateX(130%); opacity: 0; }
+}
 
 /* ============================================================
    播放页
@@ -619,6 +732,14 @@ body.font-stele .line-text {
   transition: opacity 0.4s var(--ease);
 }
 .period-quote.show { opacity: 1; }
+/* 墨晕浮现：引子大字背后一团浓墨由内向外显形（"墨晕浮现"） */
+.period-quote::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background: radial-gradient(ellipse 50% 40% at 50% 50%, rgba(8,4,3,0.85), rgba(8,4,3,0) 72%);
+  opacity: 0; transform: scale(1.12);
+  transition: opacity 0.5s ease, transform 0.8s var(--ease);
+}
+.period-quote.show::before { opacity: 1; transform: scale(1); }
 .period-quote .pq-text {
   font-family: var(--font-mao);
   font-size: clamp(40px, 6vw, 76px);
@@ -626,9 +747,13 @@ body.font-stele .line-text {
   color: var(--paper);
   text-shadow: 0 0 20px rgba(200,16,46,0.6), 0 2px 5px rgba(0,0,0,0.8);
   opacity: 0;
-  transition: opacity 0.4s var(--ease);
+  transition: opacity 0.4s var(--ease), text-shadow 0.6s ease;
 }
-.period-quote.show .pq-text { opacity: 1; }
+/* 金光描边：引子浮现时一道暗金描边勾出（"金光描边" + 磬声同步） */
+.period-quote.show .pq-text {
+  opacity: 1;
+  text-shadow: 0 0 26px rgba(244,196,120,0.7), 0 0 12px rgba(255,240,200,0.5), 0 2px 5px rgba(0,0,0,0.8);
+}
 
 /* ============================================================
    党徽（左上角装饰）
@@ -1029,6 +1154,19 @@ body.font-stele .line-text {
   100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.3); }
 }
 
+/* 切诗点睛：中心暗金粒子"绽开即收拢"（不四散，收束淡出） */
+.ink-burst {
+  position: fixed; width: 5px; height: 5px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,228,170,0.9), rgba(200,150,40,0.5) 60%, transparent 100%);
+  pointer-events: none; z-index: 60;
+  animation: ink-burst 0.9s ease-out forwards;
+}
+@keyframes ink-burst {
+  0%   { opacity: 0; transform: translate(0,0) scale(0.4); }
+  25%  { opacity: 0.9; }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.2); }
+}
+
 @media (max-width: 900px) {
   .catalog-layout { flex-direction: column; gap: 18px; }
   .period-nav { width: 100%; flex-direction: row; flex-wrap: wrap; justify-content: center; }
@@ -1065,6 +1203,18 @@ body.font-stele .line-text {
   0%   { transform: translateX(-130%); opacity: 0; }
   18%  { opacity: 1; }
   100% { transform: translateX(130%);  opacity: 0; }
+}
+/* 目录页进入：极淡竖向"卷轴开合"光晕（与播放页横扫呼应，展完即淡出不残留） */
+.view-catalog.enter::after {
+  content: ''; position: absolute; inset: 0; z-index: 12; pointer-events: none;
+  background: linear-gradient(180deg, transparent 46%, rgba(255,240,205,0.07) 50%, transparent 54%);
+  transform: scaleY(0); transform-origin: top center;
+  animation: scroll-unfurl 0.6s ease-out forwards;
+}
+@keyframes scroll-unfurl {
+  0%   { transform: scaleY(0); opacity: 0; }
+  40%  { opacity: 1; }
+  100% { transform: scaleY(1); opacity: 0; }
 }
 
 /* ============================================================
@@ -1145,6 +1295,37 @@ body[data-atmo="high"] .bg-shadow .sh { opacity: 1.25; }
 /* 飞鸟强度：关/弱→隐藏（频次本就极低），中/强→显示 */
 body[data-atmo="off"] .bg-birds,
 body[data-atmo="low"] .bg-birds { display: none; }
+
+/* ② 新层氛围联动：关→纯净（隐藏雾/底衬/神光，色调回退中性）；弱→降透明度 */
+body[data-atmo="off"] .bg-fog,
+body[data-atmo="off"] .bg-cloudback,
+body[data-atmo="off"] .bg-godray { display: none; }
+body[data-atmo="off"] .bg-tint { background-color: rgba(0,0,0,0); }
+body[data-atmo="low"] .bg-fog { opacity: 0.5; }
+body[data-atmo="low"] .bg-cloudback { opacity: 0.6; }
+body[data-atmo="low"] .bg-godray { opacity: 0.5; }
+
+/* 低端机 / 弱硬件：去掉最吃合成的新层，保流畅（由 app.js 加 .low-end） */
+.low-end .bg-godray,
+.low-end .bg-cloudback { display: none; }
+.low-end .bg-fog { opacity: 0.6; }
+
+/* 系统"减少动态"偏好：停掉最重的背景动画，避免晕眩（铁律：可读性优先） */
+@media (prefers-reduced-motion: reduce) {
+  .bg-fog, .bg-cloudback, .bg-godray, .bg-amber::after { animation: none; }
+  .bg-kenburns { animation: none; transform: scale(1.08); }
+}
+
+/* ============================================================
+   ④ 电影分级色调：按时期浸染（2s 平滑，由 .bg-tint/.bg-amber/.bg-godray 消费变量）
+   ============================================================ */
+body[data-period='早年立志']      { --tint: rgba(70,92,122,0.36); --sun-a: rgba(180,205,225,0.20); --sun-b: rgba(90,120,150,0.14); --ray: rgba(200,222,242,0.06); }
+body[data-period='井冈山与根据地'] { --tint: rgba(98,18,22,0.42);  --sun-a: rgba(230,120,70,0.22);  --sun-b: rgba(150,40,30,0.18);  --ray: rgba(255,180,120,0.07); }
+body[data-period='长征路上']       { --tint: rgba(72,56,40,0.42);  --sun-a: rgba(200,170,120,0.18); --sun-b: rgba(120,90,60,0.16);  --ray: rgba(230,200,150,0.05); }
+body[data-period='开国前后']       { --tint: rgba(120,80,20,0.26); --sun-a: rgba(255,210,130,0.26); --sun-b: rgba(220,120,50,0.16); --ray: rgba(255,225,160,0.09); }
+body[data-period='建设年代']       { --tint: rgba(110,80,40,0.24); --sun-a: rgba(245,205,140,0.22); --sun-b: rgba(200,130,60,0.14); --ray: rgba(255,220,160,0.07); }
+/* 氛围浓度"关"：回到纯净原色调（不浸染、无神光） */
+body[data-atmo="off"] { --tint: rgba(0,0,0,0); --ray: rgba(255,235,200,0); }
 
 /* ============================================================
    天地留白（B.8）：正文上下左右留出呼吸空间，不顶满、不憋闷
