@@ -42,7 +42,7 @@ const AppState = {
     atmosphere: 'off',    // 默认氛围浓度关
     bgm_id: null,
     bgm_on: true,         // BGM 打开
-    bgm_volume: 0.25,     // BGM 音量 25%（兼顾不吵与可听）
+    bgm_volume: 0.75,     // BGM 音量 25%（兼顾不吵与可听）
     subtitle: false,      // 字幕关闭
     ritual_sound: true,   // 仪式音打开
     click_sound: true     // 点击音打开
@@ -60,7 +60,7 @@ const AppState = {
       atmosphere: 'off',
       bgm_id: null,
       bgm_on: true,
-      bgm_volume: 0.25,
+      bgm_volume: 0.75,
       subtitle: false,
       ritual_sound: true,
       click_sound: true

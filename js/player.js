@@ -211,11 +211,16 @@ const Player = {
     const paused = PlayerAudio.paused;
 
     if (paused) {
-      this.wrapEl.classList.add('paused');
-      this.revealAll();                 /* 暂停：显全篇 */
-      this.setCurrent(-1);
+      /* 暂停态只在状态切换时揭示一次（避免每帧空转 classList 写入导致掉帧） */
+      if (!this._pausedState) {
+        this.wrapEl.classList.add('paused');
+        this.revealAll();               /* 暂停：显全篇 */
+        this.setCurrent(-1);
+        this._pausedState = true;
+      }
       return;
     }
+    this._pausedState = false;
     this.wrapEl.classList.remove('paused');
 
     /* 正文极短延迟（落眼用） */
@@ -224,9 +229,9 @@ const Player = {
     /* 每诗可选整体偏移（ts_offset，秒），对齐后一般无需设置 */
     const tp = t + ((this.poem && this.poem.ts_offset) || 0);
 
-    /* 同步（v1.14.2 折中）：LEAD 光先于声 0.18s；TAIL 句尾提前 0.15s 切换 */
-    const LEAD = 0.18;
-    const TAIL = 0.15;
+    /* 同步（v1.15.6）：LEAD 光先于声 0.08s；TAIL 句尾提前 0.06s 切换 —— 更贴声、不慢半拍 */
+    const LEAD = 0.08;
+    const TAIL = 0.06;
 
     /* 毛体：逐句墨晕浮现 —— 到点即 reveal，已现留存、未读隐形（碑刻保持全显原风格） */
     if (AppState.settings.font === 'mao') {

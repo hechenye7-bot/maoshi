@@ -3,7 +3,7 @@
    ============================================================ */
 'use strict';
 
-const VERSION = '1.15.5';
+const VERSION = '1.15.6';
 
 /* ---------- Toast ---------- */
 const Toast = {
@@ -192,7 +192,7 @@ const UI = {
     if (this.currentView === 'catalog') return;
     this.cbTimer = setTimeout(() => {
       if (!this.cbForce) this.controlbar.classList.remove('show');
-    }, 2000);
+    }, 3500);
   },
   toggleControlbar() {
     this.cbForce = !this.cbForce;
@@ -264,7 +264,7 @@ const SettingsUI = {
     brightVal.textContent = Math.round(s.bright * 100) + '%';
     this.applyBright(s.bright);
 
-    /* 音乐音量（BGM 大小，默认 25%，拖动即生效） */
+    /* 音乐音量（BGM 大小，默认 75%，拖动即生效） */
     const bv = (s.bgm_volume == null ? 0.5 : s.bgm_volume);
     const bgmVolEl = document.getElementById('set-bgmvol');
     const bgmVolVal = document.getElementById('set-bgmvol-val');
@@ -352,7 +352,7 @@ const SettingsUI = {
     document.getElementById('btn-reset').addEventListener('click', () => {
       AppState.settings = {
         font: 'stele', font_size: 'l', bright: 0.4, atmosphere: 'off',
-        bgm_id: null, bgm_on: true, bgm_volume: 0.25,
+        bgm_id: null, bgm_on: true, bgm_volume: 0.75,
         subtitle: false, ritual_sound: true, click_sound: true
       };
       AppState.saveSettings();
@@ -363,8 +363,8 @@ const SettingsUI = {
       document.getElementById('set-bright').value = 0.4;
       document.getElementById('set-bright-val').textContent = '40%';
       this.applyBright(0.4);
-      document.getElementById('set-bgmvol').value = 25;
-      document.getElementById('set-bgmvol-val').textContent = '25%';
+      document.getElementById('set-bgmvol').value = 75;
+      document.getElementById('set-bgmvol-val').textContent = '75%';
       PlayerAudio.refreshBgmVolume();
       this.syncFontSeg();
       this.syncAtmoSeg();
@@ -431,7 +431,7 @@ document.addEventListener('keydown', e => {
 });
 
 /* ---------- 控制条事件 ---------- */
-document.addEventListener('mousemove', () => { UI.showControlbar(); });
+document.addEventListener('pointermove', () => { UI.showControlbar(); });
 /* 手机端：无鼠标，点按/滑动屏幕即唤出控制条（PC 触控板无碍） */
 document.addEventListener('touchstart', () => { UI.showControlbar(); }, { passive: true });
 document.getElementById('cb-play').addEventListener('click', () => { Ritual.ta(); UI.togglePlay(); });
