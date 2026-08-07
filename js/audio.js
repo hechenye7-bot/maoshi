@@ -24,7 +24,7 @@ const PlayerAudio = {
     this.bgmEl = new Audio();
     this.bgmEl.loop = false;      /* 一首诗内音乐不循环重复（v1.14.2）；播完由 play() 重头 */
     this.bgmEl.volume = 0;
-    this.bgmEl.preload = 'none';
+    this.bgmEl.preload = 'auto';  /* 预缓冲 BGM，避免首次播放时因加载延迟"没声" */
     this._setupVoiceGraph();   /* 朗读 WebAudio 增益链（失败自动退回直出） */
   },
   /* 朗读 WebAudio 增益链：源电平偏低(均值约 -23dB)，用增益放大 + 限幅防破音；
@@ -113,10 +113,10 @@ const PlayerAudio = {
       this.fadeTo(this.bgmTarget(true), 1.2);
     }
   },
-  /* BGM 目标音量：base=设置音量(默认0.3)；朗诵中再压 35%（不抢朗读） */
+  /* BGM 目标音量：base=设置音量；朗诵中压至 75%（既衬托又不抢朗读） */
   bgmTarget(reciting) {
-    const v = (AppState.settings.bgm_volume == null) ? 0.3 : AppState.settings.bgm_volume;
-    return v * (reciting ? 0.55 : 0.9);
+    const v = (AppState.settings.bgm_volume == null) ? 0.25 : AppState.settings.bgm_volume;
+    return v * (reciting ? 0.75 : 0.9);
   },
   /* 平滑渐变（淡入/淡出共用）：ease-in-out 曲线，起停都柔和不突兀；
      令牌机制：新一次 fade 取消旧 fade（旧回调不再执行），杜绝快速操作的竞态。 */
@@ -142,10 +142,22 @@ const PlayerAudio = {
     if (!this.bgmEl.src || this.bgmEl.paused) return;
     this.fadeTo(this.bgmTarget(!this.el.paused), 0.25);
   },
-  /* 首次用户手势兜底：按朗读状态走统一状态机（朗读暂停时绝不擅自拉起音乐） */
-  resumeBgm() {
+  /* 用户手势内统一解锁音频：朗诵 WebAudio 上下文、仪式音上下文、BGM。
+     浏览器自动播放策略拦截后，必须靠手势触发一次 resume。 */
+  unlockAudio() {
+    this._autoplayBlocked = false;
+    try {
+      if (this.voiceCtx && this.voiceCtx.state === 'suspended') this.voiceCtx.resume().catch(() => {});
+    } catch (e) {}
+    try { Ritual.ensure(); } catch (e) {}
+    /* BGM 若已加载且应播放，手势后尝试直接拉起 */
+    if (this.bgmEl && this.bgmEl.src && this.bgmEl.paused) {
+      this.bgmEl.play().catch(() => {});
+    }
     this.syncBgm();
   },
+  /* 旧名兼容 */
+  resumeBgm() { this.unlockAudio(); },
   /* 加载/切换 BGM 曲目（不直接开播，是否响由 syncBgm 按朗读状态决定） */
   applyBgm() {
     const s = AppState.settings;

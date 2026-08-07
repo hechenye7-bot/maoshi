@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>毛泽东诗词 · 沉浸式鉴赏工作台</title>
-  <link rel="stylesheet" href="css/style.css?v=1.15.4">
+  <link rel="stylesheet" href="css/style.css?v=1.15.5">
 <!-- 字体预加载：仅预加载默认毛体；碑刻(stele.otf)改为切到"碑刻"模式时按需加载，避免进站强下 24MB -->
 <link rel="preload" href="assets/fonts/maoshanzheng.ttf" as="font" type="font/ttf" crossorigin>
 </head>
@@ -34,19 +34,6 @@
 <div class="party-flag" aria-hidden="true">
   <img src="assets/img/party_emblem.png" alt="党徽">
 </div>
-
-<!-- ===== 开启门：首屏轻触解锁音频（浏览器自动播放策略） ===== -->
-<section id="view-start" class="view view-start" aria-label="开启">
-  <div class="start-inner">
-    <div class="start-emblem" aria-hidden="true">
-      <img src="assets/img/party_emblem.png" alt="">
-    </div>
-    <h1 class="start-title">毛泽东诗词</h1>
-    <p class="start-sub">沉浸式鉴赏 · 朗读轮播</p>
-    <button class="start-enter" id="start-enter" type="button">轻触开启</button>
-    <p class="start-hint">开启后将自动播放并轮播，建议开启声音</p>
-  </div>
-</section>
 
 <!-- ===== 开场视图：黑场劈字 → 江山渐显 ===== -->
 <section id="view-intro" class="view view-intro" aria-label="开场" hidden>
@@ -156,8 +143,8 @@
       </div>
       <div class="set-row">
         <span class="set-label">音乐音量</span>
-        <input type="range" id="set-bgmvol" min="0" max="100" step="5" value="20">
-        <span class="set-bright-val" id="set-bgmvol-val">20%</span>
+        <input type="range" id="set-bgmvol" min="0" max="100" step="5" value="25">
+        <span class="set-bright-val" id="set-bgmvol-val">25%</span>
       </div>
       <div class="set-row">
         <span class="set-label">字幕</span>
@@ -231,10 +218,10 @@
   </defs>
 </svg>
 
-<script src="js/data.js?v=1.15.4"></script>
-<script src="js/audio.js?v=1.15.4"></script>
-<script src="js/player.js?v=1.15.4"></script>
-<script src="js/catalog.js?v=1.15.4"></script>
-<script src="js/app.js?v=1.15.4"></script>
+<script src="js/data.js?v=1.15.5"></script>
+<script src="js/audio.js?v=1.15.5"></script>
+<script src="js/player.js?v=1.15.5"></script>
+<script src="js/catalog.js?v=1.15.5"></script>
+<script src="js/app.js?v=1.15.5"></script>
 </body>
 </html>
