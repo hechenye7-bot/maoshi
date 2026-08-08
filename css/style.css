@@ -1484,3 +1484,45 @@ body[data-atmo="off"] { --tint: rgba(0,0,0,0); --ray: rgba(255,235,200,0); }
   .frame-left { left: 13px; }
   .frame-right { right: 13px; }
 }
+
+/* ============================================================
+   竖屏手机（portrait）：单列竖排 + 整容器纵向滚动兜底
+   解决「竖屏窄屏被挤成多列网格」问题；横屏按钮另由 cb-rotate 提供
+   ============================================================ */
+@media (orientation:portrait) and (max-width: 640px) {
+  .scroll-wrap {
+    display: block;
+    max-width: 100vw;
+    max-height: calc(100dvh - 132px);   /* 留顶部标题 + 底部控制条安全区 */
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .scroll-wrap .stanza-row { display: block; text-align: center; margin: 3px 0; }
+  .line-block { display: inline-block; padding: 6px 3px; }
+  .stanza-row { margin: 3px 0; }
+}
+
+/* 旋转引导遮罩（cb-rotate 触发：不支持锁横屏的机型提示手动旋转） */
+#rotate-hint {
+  position: fixed; inset: 0; z-index: 200; display: none;
+  flex-direction: column; align-items: center; justify-content: center;
+  background: rgba(8,5,3,0.93); color: #f4ead0;
+  text-align: center; padding: 24px;
+  -webkit-tap-highlight-color: transparent;
+}
+#rotate-hint.show { display: flex; }
+#rotate-hint .phone {
+  width: 60px; height: 104px; border: 3px solid #f4ead0; border-radius: 11px;
+  margin-bottom: 24px; position: relative;
+  animation: rotate-nudge 1.9s ease-in-out infinite;
+}
+#rotate-hint .phone::before {
+  content: ''; position: absolute; top: 7px; left: 50%; transform: translateX(-50%);
+  width: 18px; height: 4px; border-radius: 2px; background: #f4ead0;
+}
+#rotate-hint p { font-size: 17px; letter-spacing: 0.08em; line-height: 1.8; }
+@keyframes rotate-nudge {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: rotate(-90deg); }
+}
