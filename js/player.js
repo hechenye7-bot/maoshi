@@ -155,6 +155,15 @@ const Player = {
     const mode = (AppState.settings.font_size || 'm');
     const mul = mode === 'l' ? 1.06 : 1.0;
 
+    /* 竖屏单列：整首纵向滚动，字号取舒适大值（不严格 fit，避免被压到 16 偏小） */
+    if (mob && window.innerHeight > window.innerWidth) {
+      let p = Math.floor((AVAIL_H * 0.92 - PAD) / (longest * LH));
+      p = Math.round(p * mul);
+      p = Math.max(22, Math.min(48, p));
+      lineEls.forEach(el => { el.style.fontSize = p + 'px'; });
+      return;
+    }
+
     const rawTotalAt = (px) => n * (longest * px * LH + PAD) + (n - 1) * GAP;
     const rawWidthAt = (px) => maxcols * (px + COLW);
 
@@ -200,8 +209,10 @@ const Player = {
   /* 自适应分行：保留数据格律断句（阕/联）为硬分组，组内每行最多 MAXCOL 列，超出换行。
      既保住上阕/下阕的视觉间隔，又让每行不至于过长把字号压小。 */
   computeRows(lines, dataStanzas) {
+    /* 竖屏手机：单列竖排（整首从上到下排成一长列，配合容器纵向滚动），避免窄屏挤成网格 */
+    const portrait = isMobile() && window.innerHeight > window.innerWidth;
     /* 横屏等矮视口放宽到 20 列：减少行数 → 字号更大；超宽仍走横向轻滑不裁切 */
-    const MAXCOL = (isMobile() && window.innerHeight < 600) ? 20 : 12;
+    const MAXCOL = portrait ? 1 : (isMobile() && window.innerHeight < 600 ? 20 : 12);
     const bounds = [];
     let acc = 0;
     dataStanzas.forEach(c => { acc += c; bounds.push(acc); });
