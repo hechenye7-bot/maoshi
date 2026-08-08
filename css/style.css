@@ -1360,13 +1360,15 @@ body[data-atmo="low"] .bg-godray { opacity: 0.5; }
 .low-end .bg-image { animation: none; transform: scale(1.08); }   /* 静止背景，省合成 */
 .low-end .bg-amber::after { animation: none; }
 .low-end .line-text { animation: none; will-change: auto; }       /* 关每列浮动，保留静态错落 */
+.low-end .line-block { animation: none; will-change: auto; }       /* 关每列浮动动画（line-block 层本身），省合成层 */
 
 /* 系统"减少动态"偏好：停掉最重的背景动画，避免晕眩（铁律：可读性优先） */
 @media (prefers-reduced-motion: reduce) {
   .bg-fog, .bg-cloudback, .bg-godray, .bg-amber::after,
   .bg-clouds, .bg-dust, .bg-mist, .bg-noise { animation: none; display: none; }
   .bg-kenburns { animation: none; transform: scale(1.08); }
-  .line-text { animation: none; }
+  .line-text { animation: none; will-change: auto; }
+  .line-block { animation: none; will-change: auto; }   /* 关每列浮动，保留静态错落 */
 }
 
 /* ============================================================
@@ -1393,16 +1395,16 @@ body[data-atmo="off"] { --tint: rgba(0,0,0,0); --ray: rgba(255,235,200,0); }
 @media (max-width: 640px) {
   body { -webkit-tap-highlight-color: transparent; }
 
-  /* 党徽缩小（触控区不挤） */
-  .party-flag { top: 12px; left: 12px; width: 40px; height: 40px; }
-  .mao-portrait { top: 12px; right: 12px; width: 60px; height: 60px; border-radius: 10px; }
+  /* 党徽缩小（触控区不挤） + 安全区避让刘海/侧边 */
+  .party-flag { top: calc(12px + env(safe-area-inset-top, 0px)); left: calc(12px + env(safe-area-inset-left, 0px)); width: 40px; height: 40px; }
+  .mao-portrait { top: calc(12px + env(safe-area-inset-top, 0px)); right: calc(12px + env(safe-area-inset-right, 0px)); width: 60px; height: 60px; border-radius: 10px; }
 
   /* 开场标题 */
   .intro-title { font-size: clamp(34px, 9vw, 56px); }
   .intro-sub { margin-top: 12px; font-size: 13px; letter-spacing: 0.4em; }
 
-  /* 播放页头部：题名 / 年份 / 落款印 收紧 */
-  .player-head { top: 14px; padding: 6px 14px; }
+  /* 播放页头部：题名 / 年份 / 落款印 收紧 + 安全区避让刘海 */
+  .player-head { top: calc(14px + env(safe-area-inset-top, 0px)); padding: 6px 14px; }
   .player-title { font-size: clamp(20px, 5.2vw, 30px); letter-spacing: 0.2em; }
   .player-byline { bottom: 52px; font-size: 12px; letter-spacing: 0.4em; }
   .player-sign { left: 3.5%; bottom: 10%; font-size: 13px; padding: 12px 6px; border-radius: 5px; }
@@ -1410,7 +1412,7 @@ body[data-atmo="off"] { --tint: rgba(0,0,0,0); --ray: rgba(255,235,200,0); }
   /* 正文留白缩小；列距由 JS 按手机给 8px */
   .player-body { padding: 56px 3vw 60px; }
   .scroll-wrap { max-width: 100vw; max-height: 86vh;
-    display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    display: block; overflow-x: auto; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .scroll-wrap .stanza-row { display: flex; justify-content: center; }
   .line-block { padding: 9px 4px; }
   .stanza-row { margin: 9px 0; }
@@ -1418,8 +1420,8 @@ body[data-atmo="off"] { --tint: rgba(0,0,0,0); --ray: rgba(255,235,200,0); }
   /* 字幕 */
   .player-subtitle { bottom: 72px; font-size: 14px; letter-spacing: 0.2em; }
 
-  /* 控制条：触控友好尺寸 */
-  .controlbar { bottom: 16px; padding: 8px 10px; gap: 4px; }
+  /* 控制条：触控友好尺寸 + 安全区避让底部 home 指示条 */
+  .controlbar { bottom: calc(16px + env(safe-area-inset-bottom, 0px)); padding: 8px 10px; gap: 4px; }
   .cb-btn { width: 46px; height: 46px; }
   .cb-btn svg { width: 20px; height: 20px; }
   .cb-main { width: 58px; height: 58px; }
@@ -1455,4 +1457,30 @@ body[data-atmo="off"] { --tint: rgba(0,0,0,0); --ray: rgba(255,235,200,0); }
 
   /* Toast */
   .toast { font-size: 13px; padding: 10px 16px; }
+}
+
+/* ============================================================
+   横屏手机 / 矮视口（高度≤540px）：紧凑纵向布局
+   与上面 ≤640px 块互补——横屏手机宽>640 但仍属手机，单独适配，
+   重点是不让上下留白吃光正文高度（否则按 PC 留白会强制裁切）
+   ============================================================ */
+@media (max-height: 540px) {
+  .player-body { padding: 36px 4vw 42px; }
+  .player-head { top: calc(6px + env(safe-area-inset-top, 0px)); padding: 3px 12px; }
+  .player-title { font-size: clamp(17px, 4.4vw, 24px); letter-spacing: 0.16em; }
+  .player-byline { bottom: calc(40px + env(safe-area-inset-bottom, 0px)); font-size: 11px; letter-spacing: 0.32em; }
+  .player-sign { left: 2.4%; bottom: 7%; font-size: 12px; padding: 9px 5px; border-radius: 5px; }
+  .party-flag { top: calc(8px + env(safe-area-inset-top, 0px)); left: calc(8px + env(safe-area-inset-left, 0px)); width: 32px; height: 32px; }
+  .mao-portrait { top: calc(8px + env(safe-area-inset-top, 0px)); right: calc(8px + env(safe-area-inset-right, 0px)); width: 40px; height: 40px; border-radius: 10px; }
+  .player-subtitle { bottom: 52px; font-size: 13px; letter-spacing: 0.16em; }
+  /* 容器可双向滚动兜底：最长诗词在极矮屏也绝不裁切 */
+  .scroll-wrap { display: block; max-height: 82vh; overflow-x: auto; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .scroll-wrap .stanza-row { display: flex; justify-content: center; }
+  /* 控制条：放大触控 + 避让底部手势条 */
+  .controlbar { bottom: calc(10px + env(safe-area-inset-bottom, 0px)); padding: 7px 10px; gap: 3px; }
+  .cb-btn { width: 46px; height: 46px; }
+  .cb-btn svg { width: 20px; height: 20px; }
+  .cb-main { width: 56px; height: 56px; }
+  .frame-left { left: 13px; }
+  .frame-right { right: 13px; }
 }

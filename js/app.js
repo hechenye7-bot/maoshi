@@ -3,7 +3,7 @@
    ============================================================ */
 'use strict';
 
-const VERSION = '1.15.21';
+const VERSION = '1.15.22';
 
 /* ---------- Toast ---------- */
 const Toast = {
@@ -204,7 +204,7 @@ const UI = {
     if (this.currentView === 'catalog') return;
     this.cbTimer = setTimeout(() => {
       if (!this.cbForce) this.controlbar.classList.remove('show');
-    }, 3500);
+    }, 4500);   /* 手机上多点时间看清/点到控制条（原 3500ms 偏短） */
   },
   toggleControlbar() {
     this.cbForce = !this.cbForce;
@@ -698,9 +698,19 @@ function armAutoplayFallback() {
 /* ---------- 启动 ---------- */
 (async function boot() {
   AppState.load();
-  /* 低端机 / 弱硬件判定：隐藏最吃合成的新背景层，保流畅（CSS .low-end 联动） */
+  /* 低端机 / 弱硬件 / 弱网 / 系统减少动效：自动降配背景层与列浮动，保流畅（CSS .low-end 联动）。
+     关键修正：横屏手机宽~844 但高仅~390，原 innerWidth<640 漏判 → 开着云/尘/雾掉帧。
+     现改为：任一边长<640（横屏手机命中）或粗指针（触摸设备）即降配。 */
   const cores = navigator.hardwareConcurrency || 4;
-  if (cores <= 4 || window.innerWidth < 640) document.body.classList.add('low-end');
+  const mem = navigator.deviceMemory || 4;
+  const conn = navigator.connection || {};
+  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const slowNet = /(^|-)(2g|slow-2g|3g)$/.test(conn.effectiveType || '') || conn.saveData;
+  const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+  const smallViewport = Math.min(window.innerWidth, window.innerHeight) < 640;
+  if (cores <= 4 || mem <= 4 || smallViewport || coarse || reduced || slowNet) {
+    document.body.classList.add('low-end');
+  }
   await loadPoems();
   armAutoplayFallback();
   SettingsUI.init();

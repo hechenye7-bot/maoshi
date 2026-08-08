@@ -3,8 +3,12 @@
    ============================================================ */
 'use strict';
 
-/* 手机端判定（≤640px；PC 端走原布局参数，互不影响） */
-const isMobile = () => window.innerWidth < 640;
+/* 手机形态判定：任一边长 <640（横屏手机高仅~390 也命中），或粗指针（触摸）设备。
+   PC 端（宽高都大、鼠标）走原布局参数，互不影响。 */
+const isMobile = () => {
+  const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+  return window.innerWidth < 640 || window.innerHeight < 560 || !!coarse;
+};
 
 /* 时期 → 背景图映射（与图片素材顺序一致） */
 const PERIOD_BG = {
@@ -127,16 +131,17 @@ const Player = {
     const n = rows.length;
     const maxcols = Math.max(...rows);
     const mob = isMobile();
+    const shortH = mob && window.innerHeight < 600;   /* 横屏等矮视口：进一步收紧留白保零裁切 */
     const LH = 1.20;
-    const PAD = mob ? 18 : 32;              /* 手机列内 padding 9px×2；PC 16px×2 */
-    const GAP = mob ? 18 : 24;              /* 手机行距 9px×2；PC 12px×2（与CSS严格对齐） */
+    const PAD = mob ? (shortH ? 12 : 18) : 32;        /* 手机列内 padding；矮视口再收紧 */
+    const GAP = mob ? (shortH ? 12 : 18) : 24;        /* 手机行距；矮视口再收紧 */
     const COLW = mob ? 12 : 16;             /* 手机列距 8px → 12；PC 14px → 16 */
     /* fontBoost：开场展示诗等可放宽垂直空间让字稍大（上限 1.2，fit 仍保零溢出） */
     const boost = (this.poem && this.poem.fontBoost) || 1;
     const AVAIL_H = Math.min(window.innerHeight - (mob ? 110 : 192),
                              (mob ? 620 : 740) * Math.min(boost, 1.2));
     const AVAIL_W = Math.max(280, window.innerWidth - (mob ? 24 : 160));
-    const MINPX = mob ? 16 : 18;            /* 手机下限 16（高DPI可读），PC 18 */
+    const MINPX = mob ? (shortH ? 7 : 16) : 18;       /* 矮视口下限放低到 7 杜绝强制裁切；PC 18 */
     const lineEls = this.wrapEl ? this.wrapEl.querySelectorAll('.line-text') : [];
 
     const lens = lines.map(l => (l.sim || '').replace(/[，。；？！、]/g, '').length || 1);
@@ -195,7 +200,8 @@ const Player = {
   /* 自适应分行：保留数据格律断句（阕/联）为硬分组，组内每行最多 MAXCOL 列，超出换行。
      既保住上阕/下阕的视觉间隔，又让每行不至于过长把字号压小。 */
   computeRows(lines, dataStanzas) {
-    const MAXCOL = 12;   // 每行最多 12 列（行数最少化；手机超宽走横向轻滑，不缩列增行）
+    /* 横屏等矮视口放宽到 20 列：减少行数 → 字号更大；超宽仍走横向轻滑不裁切 */
+    const MAXCOL = (isMobile() && window.innerHeight < 600) ? 20 : 12;
     const bounds = [];
     let acc = 0;
     dataStanzas.forEach(c => { acc += c; bounds.push(acc); });
@@ -369,7 +375,7 @@ window.addEventListener('resize', () => {
   clearTimeout(_resizeTimer);
   _resizeTimer = setTimeout(() => {
     if (!Player.poem) return;
-    const mob = window.innerWidth < 640;
+    const mob = isMobile();
     if (Player._mobile !== mob) {
       Player._mobile = mob;
       Player.render(Player.poem);            /* 跨形态：全量重建（同步循环会恢复当前句） */
