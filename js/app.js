@@ -3,7 +3,7 @@
    ============================================================ */
 'use strict';
 
-const VERSION = '1.15.22';
+const VERSION = '1.15.23';
 
 /* ---------- Toast ---------- */
 const Toast = {
@@ -209,6 +209,25 @@ const UI = {
   toggleControlbar() {
     this.cbForce = !this.cbForce;
     this.controlbar.classList.toggle('show', this.cbForce);
+  },
+
+  /* 横屏/全屏：安卓进全屏并锁横屏；iOS 等不支持锁则显示旋转引导遮罩 */
+  toggleLandscape() {
+    const el = document.documentElement;
+    const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+    if (!fsEl) {
+      const req = el.requestFullscreen || el.webkitRequestFullscreen || el.webkitEnterFullscreen;
+      if (req) { try { req.call(el); } catch (e) {} }
+    }
+    setTimeout(() => {
+      const so = screen.orientation;
+      if (so && typeof so.lock === 'function') {
+        so.lock('landscape').then(() => {}).catch(() => {});
+      } else {
+        const h = document.getElementById('rotate-hint');
+        if (h) h.classList.add('show');
+      }
+    }, 350);
   }
 };
 
@@ -453,6 +472,21 @@ document.getElementById('cb-fav').addEventListener('click', () => UI.toggleFav()
 document.getElementById('cb-settings').addEventListener('click', () => { Ritual.ta(); Panels.open('panel-settings'); });
 document.getElementById('cb-appreciation').addEventListener('click', () => { Ritual.ta(); Panels.open('panel-appreciation'); });
 document.getElementById('cb-pick').addEventListener('click', () => { Ritual.ta(); Panels.open('panel-pick'); });
+document.getElementById('cb-rotate').addEventListener('click', () => { Ritual.ta(); UI.toggleLandscape(); });
+
+/* 旋转引导遮罩：点击关闭；横屏后自动隐藏；退出全屏解锁方向 */
+(function () {
+  const hint = document.getElementById('rotate-hint');
+  if (hint) hint.addEventListener('click', () => hint.classList.remove('show'));
+  window.addEventListener('orientationchange', () => {
+    if (window.matchMedia('(orientation: landscape)').matches && hint) hint.classList.remove('show');
+  });
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      try { if (screen.orientation && typeof screen.orientation.unlock === 'function') screen.orientation.unlock(); } catch (e) {}
+    }
+  });
+})();
 document.querySelectorAll('.panel-close').forEach(b =>
   b.addEventListener('click', () => Panels.close(b.dataset.close)));
 document.querySelectorAll('.panel').forEach(p =>
